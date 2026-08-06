@@ -1,26 +1,7 @@
 import "./style.css";
 import Phaser from "phaser";
 
-class GameScene extends Phaser.Scene {
-    constructor() {
-        super("GameScene");
-    }
-
-    create() {
-        this.cameras.main.setBackgroundColor("#2b2b2b");
-
-        this.add.text(
-            640,
-            360,
-            "🐶 PUNCH CITY ALPHA 🥊",
-            {
-                fontSize: "42px",
-                color: "#ffffff",
-                fontFamily: "Arial"
-            }
-        ).setOrigin(0.5);
-    }
-}
+import GameScene from "./scenes/GameScene.js";
 
 const config = {
     type: Phaser.AUTO,
@@ -28,6 +9,12 @@ const config = {
     height: 720,
     parent: "app",
     backgroundColor: "#000000",
+    physics: {
+        default: "arcade",
+        arcade: {
+            debug: false
+        }
+    },
     scene: [GameScene]
 };
 
