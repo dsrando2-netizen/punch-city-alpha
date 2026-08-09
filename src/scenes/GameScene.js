@@ -1,5 +1,11 @@
 import Phaser from "phaser";
+import Bear from "../objects/Bear.js";
 import PunchDog from "../objects/PunchDog.js";
+
+import Road from "../world/Road.js";
+import Sidewalk from "../world/Sidewalk.js";
+import Buildings from "../world/Buildings.js";
+import Props from "../world/Props.js";
 
 export default class GameScene extends Phaser.Scene {
 
@@ -9,36 +15,43 @@ export default class GameScene extends Phaser.Scene {
 
     create() {
 
-        // Dark background
-        this.cameras.main.setBackgroundColor("#2b2b2b");
+        // Background
+        this.cameras.main.setBackgroundColor("#87ceeb");
 
-const g = this.add.graphics();
+        // World size
+        this.physics.world.setBounds(0, 0, 3000, 2000);
+        this.cameras.main.setBounds(0, 0, 3000, 2000);
 
-g.lineStyle(2, 0x555555);
-
-for (let x = 0; x <= 3000; x += 100) {
-    g.lineBetween(x, 0, x, 2000);
-}
-
-for (let y = 0; y <= 2000; y += 100) {
-    g.lineBetween(0, y, 3000, y);
-}
-
-this.physics.world.setBounds(0, 0, 3000, 2000);
-this.cameras.main.setBounds(0, 0, 3000, 2000);
+        // Build the city
+        new Buildings(this);
+        new Sidewalk(this);
+        new Road(this);
+        new Props(this);
 
         // Create PunchDog
-        this.player = new PunchDog(this, 640, 360);
+        this.player = new PunchDog(this, 400, 600);
+        this.bear = new Bear(
+    this,
+    900,
+    600
+);
 
-        // Camera follows player
-        this.cameras.main.startFollow(this.player.sprite);
+        // Camera
+        this.cameras.main.startFollow(
+            this.player.sprite,
+            true,
+            0.08,
+            0.08
+        );
 
     }
 
-    update() {
+update() {
 
-        this.player.update();
+    this.player.update();
 
-    }
+    this.bear.update(this.player);
+
+}
 
 }
