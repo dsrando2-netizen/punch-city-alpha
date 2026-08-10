@@ -1,15 +1,10 @@
 import Phaser from "phaser";
-import AISystem from "../systems/AISystem.js";
 
 export default class Bear {
 
     constructor(scene, x, y) {
 
         this.scene = scene;
-
-        // ==========================================
-        // SPRITE
-        // ==========================================
 
         this.sprite =
             scene.physics.add.image(
@@ -47,23 +42,32 @@ export default class Bear {
             this.sprite.scaleY;
 
         // ==========================================
-        // MOVEMENT
+        // MOVEMENT / CROWD
         // ==========================================
 
         this.speed =
             120;
 
-        this.backAwaySpeed =
-            80;
+        this.repositionSpeed =
+            95;
 
         this.detectionRadius =
-            400;
+            420;
 
         this.attackRange =
             140;
 
         this.tooCloseRange =
             100;
+
+        this.crowdTargetX =
+            x;
+
+        this.crowdTargetY =
+            y;
+
+        this.canAttack =
+            false;
 
         // ==========================================
         // HEALTH
@@ -105,20 +109,13 @@ export default class Bear {
     }
 
 
-    // ==============================================
-    // UPDATE
-    // ==============================================
-
     update(player) {
 
         if (this.isDead) {
             return;
         }
 
-        // ------------------------------------------
-        // FACE PLAYER
-        // ------------------------------------------
-
+        // Face PunchDog
         if (
             player.sprite.x <
             this.sprite.x
@@ -135,9 +132,9 @@ export default class Bear {
             );
         }
 
-        // ------------------------------------------
+        // ==========================================
         // HIT RECOVERY
-        // ------------------------------------------
+        // ==========================================
 
         if (this.isHit) {
 
@@ -163,11 +160,13 @@ export default class Bear {
             return;
         }
 
-        // ------------------------------------------
-        // ATTACK ACTIVE
-        // ------------------------------------------
+        // ==========================================
+        // ACTIVE ATTACK
+        // ==========================================
 
-        if (this.isAttacking) {
+        if (
+            this.isAttacking
+        ) {
 
             this.updateAttack(
                 player
@@ -183,15 +182,7 @@ export default class Bear {
             this.attackCooldown--;
         }
 
-        const dx =
-            player.sprite.x -
-            this.sprite.x;
-
-        const dy =
-            player.sprite.y -
-            this.sprite.y;
-
-        const distance =
+        const distanceToPlayer =
             Phaser.Math.Distance.Between(
                 this.sprite.x,
                 this.sprite.y,
@@ -199,42 +190,13 @@ export default class Bear {
                 player.sprite.y
             );
 
-        // ------------------------------------------
-        // TOO CLOSE
-        // ------------------------------------------
+        // ==========================================
+        // ATTACK ONLY IF THIS BEAR OWNS SLOT
+        // ==========================================
 
         if (
-            distance <
-            this.tooCloseRange &&
-            !player.isDead
-        ) {
-
-            const away =
-                new Phaser.Math.Vector2(
-                    -dx,
-                    -dy
-                );
-
-            away.normalize();
-
-            this.body.setVelocity(
-
-                away.x *
-                    this.backAwaySpeed,
-
-                away.y *
-                    this.backAwaySpeed
-            );
-
-            return;
-        }
-
-        // ------------------------------------------
-        // ATTACK
-        // ------------------------------------------
-
-        if (
-            distance <=
+            this.canAttack &&
+            distanceToPlayer <=
                 this.attackRange &&
             this.attackCooldown <= 0 &&
             !player.isDead
@@ -245,42 +207,58 @@ export default class Bear {
             return;
         }
 
-        // ------------------------------------------
-        // CHASE
-        // ------------------------------------------
+        // ==========================================
+        // CROWD REPOSITIONING
+        // ==========================================
+
+        const distanceToSlot =
+            Phaser.Math.Distance.Between(
+                this.sprite.x,
+                this.sprite.y,
+                this.crowdTargetX,
+                this.crowdTargetY
+            );
 
         if (
-            distance <
-            this.detectionRadius &&
-            distance >
-            this.attackRange
+            distanceToSlot > 18 &&
+            !player.isDead
         ) {
 
-            AISystem.chase(
-                this,
-                player,
-                this.speed
+            const direction =
+                new Phaser.Math.Vector2(
+                    this.crowdTargetX -
+                        this.sprite.x,
+
+                    this.crowdTargetY -
+                        this.sprite.y
+                );
+
+            direction.normalize();
+
+            this.body.setVelocity(
+
+                direction.x *
+                    this.repositionSpeed,
+
+                direction.y *
+                    this.repositionSpeed
             );
 
-        } else {
-
-            AISystem.stop(
-                this
-            );
+            return;
         }
+
+        this.body.setVelocity(
+            0,
+            0
+        );
     }
 
-
-    // ==============================================
-    // START ATTACK
-    // ==============================================
 
     startAttack() {
 
         this.isAttacking =
             true;
 
-        // Slightly longer telegraph.
         this.attackTimer =
             38;
 
@@ -291,10 +269,6 @@ export default class Bear {
             0,
             0
         );
-
-        // ------------------------------------------
-        // TELEGRAPH RING
-        // ------------------------------------------
 
         this.telegraphCircle =
             this.scene.add.circle(
@@ -338,10 +312,6 @@ export default class Bear {
     }
 
 
-    // ==============================================
-    // UPDATE ATTACK
-    // ==============================================
-
     updateAttack(player) {
 
         this.attackTimer--;
@@ -352,23 +322,20 @@ export default class Bear {
                 ? -1
                 : 1;
 
-        // ------------------------------------------
-        // PHASE 1
-        // WARNING / WIND-UP
-        // ------------------------------------------
+        // ==========================================
+        // WIND-UP
+        // ==========================================
 
         if (
             this.attackTimer >
             20
         ) {
 
-            // Completely frozen while telegraphing.
             this.body.setVelocity(
                 0,
                 0
             );
 
-            // Flash orange/normal.
             if (
                 Math.floor(
                     this.attackTimer / 3
@@ -386,7 +353,6 @@ export default class Bear {
                 this.sprite.clearTint();
             }
 
-            // Heavy wind-up posture.
             this.sprite.setScale(
 
                 this.baseScaleX *
@@ -400,10 +366,9 @@ export default class Bear {
                 -direction * 6;
         }
 
-        // ------------------------------------------
-        // PHASE 2
+        // ==========================================
         // STRIKE
-        // ------------------------------------------
+        // ==========================================
 
         else if (
             this.attackTimer >
@@ -490,10 +455,9 @@ export default class Bear {
             }
         }
 
-        // ------------------------------------------
-        // PHASE 3
+        // ==========================================
         // RECOVERY
-        // ------------------------------------------
+        // ==========================================
 
         else {
 
@@ -526,10 +490,6 @@ export default class Bear {
                 )
             );
         }
-
-        // ------------------------------------------
-        // ATTACK COMPLETE
-        // ------------------------------------------
 
         if (
             this.attackTimer <= 0
@@ -569,10 +529,6 @@ export default class Bear {
     }
 
 
-    // ==============================================
-    // TAKE DAMAGE
-    // ==============================================
-
     takeDamage(amount) {
 
         if (
@@ -582,11 +538,9 @@ export default class Bear {
             return;
         }
 
-        // ------------------------------------------
-        // INTERRUPT ATTACK
-        // ------------------------------------------
-
-        if (this.isAttacking) {
+        if (
+            this.isAttacking
+        ) {
 
             this.isAttacking =
                 false;
@@ -669,13 +623,11 @@ export default class Bear {
     }
 
 
-    // ==============================================
-    // KO
-    // ==============================================
-
     die() {
 
-        if (this.isDead) {
+        if (
+            this.isDead
+        ) {
             return;
         }
 
@@ -683,6 +635,9 @@ export default class Bear {
             true;
 
         this.isAttacking =
+            false;
+
+        this.canAttack =
             false;
 
         if (

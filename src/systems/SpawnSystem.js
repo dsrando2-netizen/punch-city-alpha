@@ -4,20 +4,22 @@ export default class SpawnSystem {
 
     static spawnBruiser(scene, x, y) {
 
-        const enemy = new Bear(
+        return new Bear(
             scene,
             x,
             y
         );
-
-        return enemy;
     }
+
 
     static spawnWave(scene, waveNumber) {
 
         const enemies = [];
 
-        // Wave 1
+        // ==========================================
+        // WAVE 1
+        // ==========================================
+
         if (waveNumber === 1) {
 
             enemies.push(
@@ -27,10 +29,12 @@ export default class SpawnSystem {
                     600
                 )
             );
-
         }
 
-        // Wave 2
+        // ==========================================
+        // WAVE 2
+        // ==========================================
+
         else if (waveNumber === 2) {
 
             enemies.push(
@@ -48,15 +52,48 @@ export default class SpawnSystem {
                     680
                 )
             );
-
         }
 
-        // Wave 3+
+        // ==========================================
+        // WAVE 3
+        // ==========================================
+
+        else if (waveNumber === 3) {
+
+            enemies.push(
+                SpawnSystem.spawnBruiser(
+                    scene,
+                    850,
+                    500
+                )
+            );
+
+            enemies.push(
+                SpawnSystem.spawnBruiser(
+                    scene,
+                    1050,
+                    600
+                )
+            );
+
+            enemies.push(
+                SpawnSystem.spawnBruiser(
+                    scene,
+                    850,
+                    700
+                )
+            );
+        }
+
+        // ==========================================
+        // WAVE 4+
+        // ==========================================
+
         else {
 
             const amount =
                 Math.min(
-                    2 + waveNumber,
+                    waveNumber,
                     6
                 );
 
@@ -66,11 +103,21 @@ export default class SpawnSystem {
                 i++
             ) {
 
+                const row =
+                    i % 3;
+
+                const column =
+                    Math.floor(i / 3);
+
                 enemies.push(
                     SpawnSystem.spawnBruiser(
                         scene,
-                        850 + (i * 120),
-                        500 + ((i % 2) * 160)
+
+                        850 +
+                            (column * 220),
+
+                        480 +
+                            (row * 120)
                     )
                 );
             }

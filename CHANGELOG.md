@@ -4,6 +4,28 @@
 
 ---
 
+## Alpha 0.5.0 — Step 2
+
+### Added
+
+- Wave Manager
+- STREET CLEARED message
+- Next-wave countdown
+- Wave 2 spawning
+- Multi-enemy combat
+- Enemy-to-enemy collision
+- Automatic nearest-enemy targeting
+
+### Verified
+
+- Wave 1 completes correctly
+- Countdown triggers once
+- Wave 2 spawns 2 Bruiser Bears
+- Enemy HUD updates from 1 to 0 to 2
+- Both enemies can fight PunchDog
+
+---
+
 ## Alpha 0.5.0 — Step 1
 
 ### Added

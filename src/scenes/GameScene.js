@@ -11,12 +11,14 @@ import HealthBar from "../ui/HealthBar.js";
 
 import AnimationSystem from "../systems/AnimationSystem.js";
 import SpawnSystem from "../systems/SpawnSystem.js";
+import CrowdSystem from "../systems/CrowdSystem.js";
 
 export default class GameScene extends Phaser.Scene {
 
     constructor() {
         super("GameScene");
     }
+
 
     preload() {
 
@@ -49,11 +51,8 @@ export default class GameScene extends Phaser.Scene {
         );
     }
 
-    create() {
 
-        // ==========================================
-        // WORLD
-        // ==========================================
+    create() {
 
         this.cameras.main.setBackgroundColor(
             "#87ceeb"
@@ -80,30 +79,38 @@ export default class GameScene extends Phaser.Scene {
         new Road(this);
         new Props(this);
 
+
         // ==========================================
         // PLAYER
         // ==========================================
 
-        this.player = new PunchDog(
-            this,
-            400,
-            600
-        );
+        this.player =
+            new PunchDog(
+                this,
+                400,
+                600
+            );
+
 
         // ==========================================
         // WAVE STATE
         // ==========================================
 
-        this.currentWave = 1;
+        this.currentWave =
+            1;
 
-        this.enemies = [];
+        this.enemies =
+            [];
 
-        this.isWaveTransitioning = false;
+        this.waveStarted =
+            false;
 
-        this.waveStarted = false;
+        this.isWaveTransitioning =
+            false;
+
 
         // ==========================================
-        // HUD
+        // PLAYER HUD
         // ==========================================
 
         this.playerHealthBar =
@@ -118,25 +125,42 @@ export default class GameScene extends Phaser.Scene {
                 }
             );
 
+
+        // ==========================================
+        // ENEMY COUNT
+        // ==========================================
+
         this.enemyCountText =
             this.add.text(
                 535,
                 26,
                 "",
                 {
-                    fontFamily: "Arial",
-                    fontSize: "22px",
-                    color: "#ffffff",
-                    stroke: "#000000",
-                    strokeThickness: 5
+                    fontFamily:
+                        "Arial",
+
+                    fontSize:
+                        "22px",
+
+                    color:
+                        "#ffffff",
+
+                    stroke:
+                        "#000000",
+
+                    strokeThickness:
+                        5
                 }
             );
 
         this.enemyCountText
-            .setScrollFactor(0);
-
-        this.enemyCountText
+            .setScrollFactor(0)
             .setDepth(1000);
+
+
+        // ==========================================
+        // WAVE TEXT
+        // ==========================================
 
         this.waveText =
             this.add.text(
@@ -144,22 +168,30 @@ export default class GameScene extends Phaser.Scene {
                 58,
                 "",
                 {
-                    fontFamily: "Arial",
-                    fontSize: "20px",
-                    color: "#ffd54a",
-                    stroke: "#000000",
-                    strokeThickness: 4
+                    fontFamily:
+                        "Arial",
+
+                    fontSize:
+                        "20px",
+
+                    color:
+                        "#ffd54a",
+
+                    stroke:
+                        "#000000",
+
+                    strokeThickness:
+                        4
                 }
             );
 
         this.waveText
-            .setScrollFactor(0);
-
-        this.waveText
+            .setScrollFactor(0)
             .setDepth(1000);
 
+
         // ==========================================
-        // BIG CENTER MESSAGE
+        // CENTER MESSAGE
         // ==========================================
 
         this.centerMessage =
@@ -168,28 +200,66 @@ export default class GameScene extends Phaser.Scene {
                 this.scale.height / 2,
                 "",
                 {
-                    fontFamily: "Arial Black",
-                    fontSize: "48px",
-                    color: "#ffffff",
+                    fontFamily:
+                        "Arial Black",
 
-                    align: "center",
+                    fontSize:
+                        "50px",
 
-                    stroke: "#000000",
-                    strokeThickness: 8
+                    color:
+                        "#ffffff",
+
+                    align:
+                        "center",
+
+                    stroke:
+                        "#000000",
+
+                    strokeThickness:
+                        9
                 }
             );
 
         this.centerMessage
-            .setOrigin(0.5);
-
-        this.centerMessage
-            .setScrollFactor(0);
-
-        this.centerMessage
-            .setDepth(2000);
-
-        this.centerMessage
+            .setOrigin(0.5)
+            .setScrollFactor(0)
+            .setDepth(2000)
             .setVisible(false);
+
+
+        // ==========================================
+        // REWARD MESSAGE
+        // ==========================================
+
+        this.rewardMessage =
+            this.add.text(
+                this.scale.width / 2,
+                (this.scale.height / 2) + 85,
+                "",
+                {
+                    fontFamily:
+                        "Arial Black",
+
+                    fontSize:
+                        "24px",
+
+                    color:
+                        "#65ff7a",
+
+                    stroke:
+                        "#000000",
+
+                    strokeThickness:
+                        5
+                }
+            );
+
+        this.rewardMessage
+            .setOrigin(0.5)
+            .setScrollFactor(0)
+            .setDepth(2001)
+            .setVisible(false);
+
 
         // ==========================================
         // CAMERA
@@ -202,9 +272,6 @@ export default class GameScene extends Phaser.Scene {
             0.08
         );
 
-        // ==========================================
-        // BEGIN WAVE 1
-        // ==========================================
 
         this.startWave(
             this.currentWave
@@ -212,46 +279,88 @@ export default class GameScene extends Phaser.Scene {
     }
 
 
-    // ==============================================
-    // UPDATE
-    // ==============================================
-
     update() {
 
         // ==========================================
-        // PLAYER
+        // TRANSITION LOCK
         // ==========================================
 
-        this.player.update();
+        if (
+            this.isWaveTransitioning
+        ) {
+
+            if (
+                this.player?.body?.enable
+            ) {
+
+                this.player.body.setVelocity(
+                    0,
+                    0
+                );
+            }
+
+        } else {
+
+            this.player.update();
+        }
+
 
         // ==========================================
-        // KEEP ONLY ACTIVE ENEMIES
+        // REMOVE DEAD ENEMIES
         // ==========================================
 
         this.enemies =
             this.enemies.filter(
-                (enemy) =>
+                enemy =>
                     !enemy.isDead
             );
+
+
+        // ==========================================
+        // CROWD BEHAVIOR
+        // ==========================================
+
+        if (
+            !this.isWaveTransitioning &&
+            this.enemies.length > 0
+        ) {
+
+            CrowdSystem.assignSlots(
+                this.player,
+                this.enemies
+            );
+
+            // For now only one Bruiser is
+            // allowed to attack at once.
+            CrowdSystem.chooseAttackers(
+                this.player,
+                this.enemies,
+                1
+            );
+        }
+
 
         // ==========================================
         // UPDATE ENEMIES
         // ==========================================
 
-        this.enemies.forEach(
-            (enemy) => {
+        if (
+            !this.isWaveTransitioning
+        ) {
 
-                enemy.update(
-                    this.player
-                );
-            }
-        );
+            this.enemies.forEach(
+                enemy => {
 
-        // ==========================================
-        // PLAYER TARGET
-        // ==========================================
+                    enemy.update(
+                        this.player
+                    );
+                }
+            );
+        }
+
 
         this.updatePlayerTarget();
+
 
         // ==========================================
         // HUD
@@ -267,8 +376,9 @@ export default class GameScene extends Phaser.Scene {
             `WAVE ${this.currentWave}`
         );
 
+
         // ==========================================
-        // WAVE CLEAR CHECK
+        // WAVE COMPLETE
         // ==========================================
 
         if (
@@ -283,19 +393,13 @@ export default class GameScene extends Phaser.Scene {
     }
 
 
-    // ==============================================
-    // START WAVE
-    // ==============================================
-
     startWave(waveNumber) {
 
-        this.waveStarted = false;
+        this.waveStarted =
+            false;
 
-        this.isWaveTransitioning = false;
-
-        // ------------------------------------------
-        // SPAWN ENEMIES
-        // ------------------------------------------
+        this.isWaveTransitioning =
+            false;
 
         this.enemies =
             SpawnSystem.spawnWave(
@@ -303,12 +407,10 @@ export default class GameScene extends Phaser.Scene {
                 waveNumber
             );
 
-        // ------------------------------------------
-        // PLAYER COLLISION WITH EACH ENEMY
-        // ------------------------------------------
 
+        // Player ↔ enemy collision
         this.enemies.forEach(
-            (enemy) => {
+            enemy => {
 
                 this.physics.add.collider(
                     this.player.sprite,
@@ -317,10 +419,8 @@ export default class GameScene extends Phaser.Scene {
             }
         );
 
-        // ------------------------------------------
-        // ENEMIES COLLIDE WITH EACH OTHER
-        // ------------------------------------------
 
+        // Enemy ↔ enemy collision
         for (
             let i = 0;
             i < this.enemies.length;
@@ -340,72 +440,53 @@ export default class GameScene extends Phaser.Scene {
             }
         }
 
+
+        CrowdSystem.assignSlots(
+            this.player,
+            this.enemies
+        );
+
+        CrowdSystem.chooseAttackers(
+            this.player,
+            this.enemies,
+            1
+        );
+
         this.updatePlayerTarget();
 
-        this.waveStarted = true;
+        this.waveStarted =
+            true;
 
-        // ------------------------------------------
-        // WAVE START MESSAGE
-        // ------------------------------------------
-
-        this.showCenterMessage(
-            `WAVE ${waveNumber}\nFIGHT!`,
-            900
+        this.showWaveStart(
+            waveNumber
         );
     }
 
 
-    // ==============================================
-    // WAVE COMPLETE
-    // ==============================================
+    showWaveStart(waveNumber) {
 
-    completeWave() {
+        this.centerMessage
+            .setText(
+                `WAVE ${waveNumber}\nFIGHT!`
+            )
+            .setVisible(true)
+            .setAlpha(0)
+            .setScale(1.35);
 
-        this.isWaveTransitioning = true;
-
-        this.waveStarted = false;
-
-        this.player.target = null;
-
-        this.showStreetCleared();
-    }
-
-
-    // ==============================================
-    // STREET CLEARED
-    // ==============================================
-
-    showStreetCleared() {
-
-        this.centerMessage.setText(
-            "STREET CLEARED!"
-        );
-
-        this.centerMessage.setVisible(
-            true
-        );
-
-        this.centerMessage.setScale(
-            0.7
-        );
-
-        this.centerMessage.setAlpha(
-            0
-        );
 
         this.tweens.add({
 
             targets:
                 this.centerMessage,
 
-            scale:
-                1,
-
             alpha:
                 1,
 
+            scale:
+                1,
+
             duration:
-                250,
+                220,
 
             ease:
                 "Back.Out",
@@ -413,7 +494,106 @@ export default class GameScene extends Phaser.Scene {
             onComplete: () => {
 
                 this.time.delayedCall(
-                    900,
+                    650,
+                    () => {
+
+                        this.tweens.add({
+
+                            targets:
+                                this.centerMessage,
+
+                            alpha:
+                                0,
+
+                            duration:
+                                180,
+
+                            onComplete:
+                                () => {
+
+                                    this.centerMessage
+                                        .setVisible(
+                                            false
+                                        );
+                                }
+                        });
+                    }
+                );
+            }
+        });
+    }
+
+
+    completeWave() {
+
+        this.isWaveTransitioning =
+            true;
+
+        this.waveStarted =
+            false;
+
+        this.player.target =
+            null;
+
+        if (
+            this.player?.body?.enable
+        ) {
+
+            this.player.body.setVelocity(
+                0,
+                0
+            );
+        }
+
+        this.showStreetCleared();
+    }
+
+
+    showStreetCleared() {
+
+        this.centerMessage
+            .setText(
+                "STREET CLEARED!"
+            )
+            .setVisible(true)
+            .setAlpha(0)
+            .setScale(0.45)
+            .setAngle(-5);
+
+
+        this.tweens.add({
+
+            targets:
+                this.centerMessage,
+
+            alpha:
+                1,
+
+            scale:
+                1.08,
+
+            angle:
+                0,
+
+            duration:
+                320,
+
+            ease:
+                "Back.Out",
+
+            onComplete: () => {
+
+                this.cameras.main.shake(
+                    90,
+                    0.003
+                );
+
+                this.restorePlayerHealth(
+                    1
+                );
+
+                this.time.delayedCall(
+                    1000,
                     () => {
 
                         this.beginNextWaveCountdown();
@@ -424,27 +604,135 @@ export default class GameScene extends Phaser.Scene {
     }
 
 
-    // ==============================================
-    // NEXT WAVE COUNTDOWN
-    // ==============================================
+    restorePlayerHealth(amount) {
+
+        if (
+            this.player.health >=
+            this.player.maxHealth
+        ) {
+
+            this.rewardMessage
+                .setText(
+                    "HP FULL"
+                );
+
+        } else {
+
+            const oldHealth =
+                this.player.health;
+
+            this.player.health =
+                Math.min(
+                    this.player.maxHealth,
+                    this.player.health +
+                        amount
+                );
+
+            const restored =
+                this.player.health -
+                oldHealth;
+
+            this.rewardMessage
+                .setText(
+                    `+${restored} HP`
+                );
+
+            this.player.sprite.setTint(
+                0x66ff88
+            );
+
+            this.time.delayedCall(
+                250,
+                () => {
+
+                    if (
+                        !this.player.isDead
+                    ) {
+
+                        this.player.sprite.clearTint();
+                    }
+                }
+            );
+        }
+
+
+        this.rewardMessage
+            .setVisible(true)
+            .setAlpha(0)
+            .setY(
+                (this.scale.height / 2) +
+                95
+            );
+
+
+        this.tweens.add({
+
+            targets:
+                this.rewardMessage,
+
+            alpha:
+                1,
+
+            y:
+                this.rewardMessage.y -
+                18,
+
+            duration:
+                220,
+
+            ease:
+                "Cubic.Out",
+
+            onComplete: () => {
+
+                this.time.delayedCall(
+                    550,
+                    () => {
+
+                        this.tweens.add({
+
+                            targets:
+                                this.rewardMessage,
+
+                            alpha:
+                                0,
+
+                            duration:
+                                180,
+
+                            onComplete:
+                                () => {
+
+                                    this.rewardMessage
+                                        .setVisible(
+                                            false
+                                        );
+                                }
+                        });
+                    }
+                );
+            }
+        });
+    }
+
 
     beginNextWaveCountdown() {
 
-        let countdown = 3;
+        let countdown =
+            3;
 
-        this.centerMessage.setScale(
-            1
-        );
 
-        this.centerMessage.setAlpha(
-            1
-        );
+        this.centerMessage
+            .setVisible(true)
+            .setAlpha(1)
+            .setScale(1)
+            .setAngle(0)
+            .setText(
+                `NEXT WAVE\n${countdown}`
+            );
 
-        this.centerMessage.setText(
-            `NEXT WAVE\n${countdown}`
-        );
 
-        const timer =
+        const countdownEvent =
             this.time.addEvent({
 
                 delay:
@@ -462,28 +750,54 @@ export default class GameScene extends Phaser.Scene {
                             countdown > 0
                         ) {
 
-                            this.centerMessage.setText(
-                                `NEXT WAVE\n${countdown}`
-                            );
+                            this.centerMessage
+                                .setText(
+                                    `NEXT WAVE\n${countdown}`
+                                );
+
+                            this.centerMessage
+                                .setScale(
+                                    1.15
+                                );
+
+                            this.tweens.add({
+
+                                targets:
+                                    this.centerMessage,
+
+                                scale:
+                                    1,
+
+                                duration:
+                                    150,
+
+                                ease:
+                                    "Back.Out"
+                            });
 
                         } else {
 
-                            this.centerMessage.setText(
-                                "FIGHT!"
-                            );
+                            this.centerMessage
+                                .setText(
+                                    "GET READY!"
+                                );
                         }
                     }
             });
+
 
         this.time.delayedCall(
             2300,
             () => {
 
-                timer.remove(false);
-
-                this.centerMessage.setVisible(
+                countdownEvent.remove(
                     false
                 );
+
+                this.centerMessage
+                    .setVisible(
+                        false
+                    );
 
                 this.currentWave++;
 
@@ -494,50 +808,6 @@ export default class GameScene extends Phaser.Scene {
         );
     }
 
-
-    // ==============================================
-    // CENTER MESSAGE HELPER
-    // ==============================================
-
-    showCenterMessage(
-        text,
-        duration = 1000
-    ) {
-
-        this.centerMessage.setText(
-            text
-        );
-
-        this.centerMessage.setVisible(
-            true
-        );
-
-        this.centerMessage.setAlpha(
-            1
-        );
-
-        this.time.delayedCall(
-            duration,
-            () => {
-
-                // Don't hide it if we're currently
-                // transitioning between waves.
-                if (
-                    !this.isWaveTransitioning
-                ) {
-
-                    this.centerMessage.setVisible(
-                        false
-                    );
-                }
-            }
-        );
-    }
-
-
-    // ==============================================
-    // FIND NEAREST LIVING ENEMY
-    // ==============================================
 
     updatePlayerTarget() {
 
@@ -557,23 +827,29 @@ export default class GameScene extends Phaser.Scene {
         let nearestDistance =
             Infinity;
 
+
         this.enemies.forEach(
-            (enemy) => {
+            enemy => {
 
                 if (
-                    enemy.isDead
+                    enemy.isDead ||
+                    !enemy.sprite ||
+                    !enemy.sprite.active
                 ) {
+
                     return;
                 }
 
                 const distance =
                     Phaser.Math.Distance.Between(
+
                         this.player.sprite.x,
                         this.player.sprite.y,
 
                         enemy.sprite.x,
                         enemy.sprite.y
                     );
+
 
                 if (
                     distance <
@@ -588,6 +864,7 @@ export default class GameScene extends Phaser.Scene {
                 }
             }
         );
+
 
         this.player.target =
             nearestEnemy;
