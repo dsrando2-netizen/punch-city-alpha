@@ -4,6 +4,62 @@
 
 ---
 
+## Alpha 0.5.0 — First Real Combat Encounter
+
+### Added
+
+- Enemy SpawnSystem
+- Multi-enemy registry
+- Wave-based combat
+- Wave 1, Wave 2, and Wave 3 progression
+- Enemy counter HUD
+- STREET CLEARED announcements
+- Next-wave countdown
+- Between-wave +1 HP recovery
+- CrowdSystem
+- Enemy formation and spacing
+- One-attacker-at-a-time attack slots
+- Nearest-enemy targeting
+- Multi-enemy collision
+- Final AREA COMPLETE victory screen
+- Press R to replay encounter
+
+### Combat
+
+- PunchDog movement and idle/walk animations
+- Punch attack system
+- Dodge with temporary invulnerability
+- Dodge afterimage and dust effects
+- Bruiser Bear AI
+- Bruiser attack telegraph
+- Damage and knockback
+- Health system
+- Bruiser Bear KO
+- Multi-enemy combat
+
+### Alpha 0.5.0 Encounter
+
+Wave 1:
+- 1 Bruiser Bear
+
+Wave 2:
+- 2 Bruiser Bears
+
+Wave 3:
+- 3 Bruiser Bears
+
+After Wave 3:
+- STREET CLEARED
+- AREA COMPLETE
+- Alpha 0.5.0 victory screen
+- Replay with R
+
+### Status
+
+Alpha 0.5.0 First Real Combat Encounter COMPLETE
+
+---
+
 ## Alpha 0.5.0 — Step 4
 
 ### Added

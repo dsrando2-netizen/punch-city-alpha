@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import PickupSystem from "../systems/PickupSystem.js";
 
 export default class Bear {
 
@@ -41,6 +42,7 @@ export default class Bear {
         this.baseScaleY =
             this.sprite.scaleY;
 
+
         // ==========================================
         // MOVEMENT / CROWD
         // ==========================================
@@ -69,6 +71,7 @@ export default class Bear {
         this.canAttack =
             false;
 
+
         // ==========================================
         // HEALTH
         // ==========================================
@@ -87,6 +90,7 @@ export default class Bear {
 
         this.isDead =
             false;
+
 
         // ==========================================
         // ATTACK
@@ -109,13 +113,24 @@ export default class Bear {
     }
 
 
+    // ==============================================
+    // UPDATE
+    // ==============================================
+
     update(player) {
 
-        if (this.isDead) {
+        if (
+            this.isDead
+        ) {
+
             return;
         }
 
-        // Face PunchDog
+
+        // ==========================================
+        // FACE PLAYER
+        // ==========================================
+
         if (
             player.sprite.x <
             this.sprite.x
@@ -132,11 +147,14 @@ export default class Bear {
             );
         }
 
+
         // ==========================================
         // HIT RECOVERY
         // ==========================================
 
-        if (this.isHit) {
+        if (
+            this.isHit
+        ) {
 
             this.hitTimer--;
 
@@ -160,6 +178,7 @@ export default class Bear {
             return;
         }
 
+
         // ==========================================
         // ACTIVE ATTACK
         // ==========================================
@@ -175,6 +194,7 @@ export default class Bear {
             return;
         }
 
+
         if (
             this.attackCooldown > 0
         ) {
@@ -182,16 +202,20 @@ export default class Bear {
             this.attackCooldown--;
         }
 
+
         const distanceToPlayer =
             Phaser.Math.Distance.Between(
+
                 this.sprite.x,
                 this.sprite.y,
+
                 player.sprite.x,
                 player.sprite.y
             );
 
+
         // ==========================================
-        // ATTACK ONLY IF THIS BEAR OWNS SLOT
+        // ATTACK
         // ==========================================
 
         if (
@@ -207,17 +231,21 @@ export default class Bear {
             return;
         }
 
+
         // ==========================================
         // CROWD REPOSITIONING
         // ==========================================
 
         const distanceToSlot =
             Phaser.Math.Distance.Between(
+
                 this.sprite.x,
                 this.sprite.y,
+
                 this.crowdTargetX,
                 this.crowdTargetY
             );
+
 
         if (
             distanceToSlot > 18 &&
@@ -226,6 +254,7 @@ export default class Bear {
 
             const direction =
                 new Phaser.Math.Vector2(
+
                     this.crowdTargetX -
                         this.sprite.x,
 
@@ -234,6 +263,7 @@ export default class Bear {
                 );
 
             direction.normalize();
+
 
             this.body.setVelocity(
 
@@ -247,12 +277,17 @@ export default class Bear {
             return;
         }
 
+
         this.body.setVelocity(
             0,
             0
         );
     }
 
+
+    // ==============================================
+    // START ATTACK
+    // ==============================================
 
     startAttack() {
 
@@ -270,12 +305,17 @@ export default class Bear {
             0
         );
 
+
         this.telegraphCircle =
             this.scene.add.circle(
+
                 this.sprite.x,
+
                 this.sprite.y + 42,
+
                 35
             );
+
 
         this.telegraphCircle
             .setStrokeStyle(
@@ -284,10 +324,12 @@ export default class Bear {
                 0.9
             );
 
+
         this.telegraphCircle
             .setDepth(
                 this.sprite.depth - 1
             );
+
 
         this.scene.tweens.add({
 
@@ -312,9 +354,14 @@ export default class Bear {
     }
 
 
+    // ==============================================
+    // ATTACK UPDATE
+    // ==============================================
+
     updateAttack(player) {
 
         this.attackTimer--;
+
 
         const direction =
             player.sprite.x <
@@ -322,19 +369,20 @@ export default class Bear {
                 ? -1
                 : 1;
 
+
         // ==========================================
         // WIND-UP
         // ==========================================
 
         if (
-            this.attackTimer >
-            20
+            this.attackTimer > 20
         ) {
 
             this.body.setVelocity(
                 0,
                 0
             );
+
 
             if (
                 Math.floor(
@@ -353,6 +401,7 @@ export default class Bear {
                 this.sprite.clearTint();
             }
 
+
             this.sprite.setScale(
 
                 this.baseScaleX *
@@ -362,20 +411,22 @@ export default class Bear {
                     0.92
             );
 
+
             this.sprite.angle =
                 -direction * 6;
         }
+
 
         // ==========================================
         // STRIKE
         // ==========================================
 
         else if (
-            this.attackTimer >
-            11
+            this.attackTimer > 11
         ) {
 
             this.sprite.clearTint();
+
 
             if (
                 this.telegraphCircle
@@ -387,6 +438,7 @@ export default class Bear {
                     null;
             }
 
+
             this.sprite.setScale(
 
                 this.baseScaleX *
@@ -396,12 +448,15 @@ export default class Bear {
                     0.96
             );
 
+
             this.sprite.angle =
                 direction * 8;
+
 
             this.body.setVelocityX(
                 direction * 65
             );
+
 
             if (
                 !this.attackHasHit
@@ -409,15 +464,19 @@ export default class Bear {
 
                 const hitDX =
                     Math.abs(
+
                         this.sprite.x -
                         player.sprite.x
                     );
 
+
                 const hitDY =
                     Math.abs(
+
                         this.sprite.y -
                         player.sprite.y
                     );
+
 
                 if (
                     hitDX <= 145 &&
@@ -430,8 +489,10 @@ export default class Bear {
                             this
                         );
 
+
                     this.attackHasHit =
                         true;
+
 
                     if (
                         hit !== false &&
@@ -441,7 +502,9 @@ export default class Bear {
                     ) {
 
                         this.scene.sound.play(
+
                             "punch-hit",
+
                             {
                                 volume:
                                     0.8,
@@ -455,6 +518,7 @@ export default class Bear {
             }
         }
 
+
         // ==========================================
         // RECOVERY
         // ==========================================
@@ -463,33 +527,50 @@ export default class Bear {
 
             this.sprite.clearTint();
 
+
             this.body.setVelocity(
                 0,
                 0
             );
 
+
             this.sprite.angle =
                 Phaser.Math.Linear(
+
                     this.sprite.angle,
+
                     0,
+
                     0.30
                 );
+
 
             this.sprite.setScale(
 
                 Phaser.Math.Linear(
+
                     this.sprite.scaleX,
+
                     this.baseScaleX,
+
                     0.30
                 ),
 
                 Phaser.Math.Linear(
+
                     this.sprite.scaleY,
+
                     this.baseScaleY,
+
                     0.30
                 )
             );
         }
+
+
+        // ==========================================
+        // ATTACK COMPLETE
+        // ==========================================
 
         if (
             this.attackTimer <= 0
@@ -500,15 +581,20 @@ export default class Bear {
                 0
             );
 
+
             this.sprite.clearTint();
 
             this.sprite.angle =
                 0;
 
+
             this.sprite.setScale(
+
                 this.baseScaleX,
+
                 this.baseScaleY
             );
+
 
             if (
                 this.telegraphCircle
@@ -520,8 +606,10 @@ export default class Bear {
                     null;
             }
 
+
             this.isAttacking =
                 false;
+
 
             this.attackCooldown =
                 60;
@@ -529,14 +617,20 @@ export default class Bear {
     }
 
 
+    // ==============================================
+    // TAKE DAMAGE
+    // ==============================================
+
     takeDamage(amount) {
 
         if (
             this.isDead ||
             this.isHit
         ) {
+
             return;
         }
+
 
         if (
             this.isAttacking
@@ -551,6 +645,7 @@ export default class Bear {
             this.attackHasHit =
                 false;
 
+
             if (
                 this.telegraphCircle
             ) {
@@ -561,23 +656,30 @@ export default class Bear {
                     null;
             }
 
+
             this.body.setVelocity(
                 0,
                 0
             );
+
 
             this.sprite.clearTint();
 
             this.sprite.angle =
                 0;
 
+
             this.sprite.setScale(
+
                 this.baseScaleX,
+
                 this.baseScaleY
             );
         }
 
+
         this.health -= amount;
+
 
         this.health =
             Math.max(
@@ -585,15 +687,19 @@ export default class Bear {
                 this.health
             );
 
+
         this.isHit =
             true;
+
 
         this.hitTimer =
             14;
 
+
         this.sprite.setTint(
             0xff3b3b
         );
+
 
         this.scene.time.delayedCall(
             110,
@@ -609,10 +715,12 @@ export default class Bear {
             }
         );
 
+
         console.log(
             "Bruiser Bear HP:",
             this.health
         );
+
 
         if (
             this.health <= 0
@@ -623,22 +731,31 @@ export default class Bear {
     }
 
 
+    // ==============================================
+    // KO
+    // ==============================================
+
     die() {
 
         if (
             this.isDead
         ) {
+
             return;
         }
+
 
         this.isDead =
             true;
 
+
         this.isAttacking =
             false;
 
+
         this.canAttack =
             false;
+
 
         if (
             this.telegraphCircle
@@ -650,25 +767,45 @@ export default class Bear {
                 null;
         }
 
+
         this.sprite.clearTint();
+
 
         this.body.setVelocity(
             0,
             0
         );
 
+
         this.body.enable =
             false;
+
+
+        // ==========================================
+        // DROP LOOT
+        // ==========================================
+
+        PickupSystem.dropFromEnemy(
+            this.scene,
+            this
+        );
+
+
+        // ==========================================
+        // KO ANIMATION
+        // ==========================================
 
         const fallDirection =
             this.sprite.flipX
                 ? 1
                 : -1;
 
+
         this.scene.tweens.add({
 
             targets:
                 this.sprite,
+
 
             x:
                 this.sprite.x +
@@ -677,19 +814,24 @@ export default class Bear {
                     fallDirection
                 ),
 
+
             y:
                 this.sprite.y +
                 24,
+
 
             angle:
                 78 *
                 fallDirection,
 
+
             duration:
                 320,
 
+
             ease:
                 "Cubic.Out",
+
 
             onComplete: () => {
 
@@ -698,51 +840,65 @@ export default class Bear {
                     0.005
                 );
 
+
                 this.scene.tweens.add({
 
                     targets:
                         this.sprite,
 
+
                     y:
                         this.sprite.y -
                         7,
 
+
                     duration:
                         90,
+
 
                     yoyo:
                         true,
 
+
                     ease:
                         "Quad.Out",
 
+
                     onComplete:
                         () => {
+
 
                             this.sprite.setTint(
                                 0x888888
                             );
 
+
                             this.scene.time.delayedCall(
                                 1700,
                                 () => {
+
 
                                     this.scene.tweens.add({
 
                                         targets:
                                             this.sprite,
 
+
                                         alpha:
                                             0,
+
 
                                         duration:
                                             500,
 
+
                                         ease:
                                             "Sine.In",
 
+
                                         onComplete:
                                             () => {
+
 
                                                 this.sprite.destroy();
                                             }
