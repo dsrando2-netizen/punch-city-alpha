@@ -7,53 +7,118 @@ export default class Bear {
 
         this.scene = scene;
 
-        this.sprite = scene.add.rectangle(
-            x,
-            y,
-            50,
-            70,
-            0x7b5235
+        this.sprite =
+            scene.physics.add.image(
+                x,
+                y,
+                "bruiser_bear"
+            );
+
+        this.sprite.setDisplaySize(
+            190,
+            190
         );
 
-        scene.physics.add.existing(this.sprite);
+        this.body =
+            this.sprite.body;
 
-        this.body = this.sprite.body;
+        this.body.setSize(
+            85,
+            95
+        );
 
-        this.body.setCollideWorldBounds(true);
+        this.body.setOffset(
+            52,
+            85
+        );
 
+        this.body.setCollideWorldBounds(
+            true
+        );
+
+        // -------------------------
         // Movement
+        // -------------------------
+
         this.speed = 120;
+
         this.detectionRadius = 300;
 
+        // -------------------------
         // Combat
-        this.health = 3;
+        // -------------------------
+
+        this.maxHealth = 3;
+
+        this.health =
+            this.maxHealth;
+
         this.isHit = false;
+
         this.hitTimer = 0;
 
+        this.isDead = false;
     }
 
     update(player) {
 
-        // Pause AI briefly after getting hit
-        if (this.isHit) {
+        if (
+            this.isDead
+        ) {
+            return;
+        }
+
+        // Always face PunchDog
+        if (
+            player.sprite.x <
+            this.sprite.x
+        ) {
+
+            this.sprite.setFlipX(
+                true
+            );
+
+        } else {
+
+            this.sprite.setFlipX(
+                false
+            );
+        }
+
+        // Let knockback finish
+        if (
+            this.isHit
+        ) {
 
             this.hitTimer--;
 
-            if (this.hitTimer <= 0) {
+            // Gradually reduce knockback
+            this.body.velocity.scale(
+                0.88
+            );
+
+            if (
+                this.hitTimer <= 0
+            ) {
+
                 this.isHit = false;
             }
 
             return;
         }
 
-        const distance = Phaser.Math.Distance.Between(
-            this.sprite.x,
-            this.sprite.y,
-            player.sprite.x,
-            player.sprite.y
-        );
+        const distance =
+            Phaser.Math.Distance.Between(
+                this.sprite.x,
+                this.sprite.y,
+                player.sprite.x,
+                player.sprite.y
+            );
 
-        if (distance < this.detectionRadius) {
+        if (
+            distance <
+            this.detectionRadius
+        ) {
 
             AISystem.chase(
                 this,
@@ -63,52 +128,90 @@ export default class Bear {
 
         } else {
 
-            AISystem.stop(this);
-
+            AISystem.stop(
+                this
+            );
         }
-
     }
 
     takeDamage(amount) {
 
-        if (this.isHit) {
+        if (
+            this.isDead ||
+            this.isHit
+        ) {
             return;
         }
 
         this.health -= amount;
 
         this.isHit = true;
-        this.hitTimer = 12;
 
-        // Flash red
-        this.sprite.setFillStyle(0xff0000);
+        // Longer stun = stronger looking knockback
+        this.hitTimer = 18;
 
-        this.scene.time.delayedCall(120, () => {
+        this.sprite.setTint(
+            0xff4444
+        );
 
-            if (this.health > 0) {
-                this.sprite.setFillStyle(0x7b5235);
+        this.scene.time.delayedCall(
+            120,
+            () => {
+
+                if (
+                    !this.isDead
+                ) {
+
+                    this.sprite.clearTint();
+                }
             }
+        );
 
-        });
+        console.log(
+            "Bruiser Bear HP:",
+            this.health
+        );
 
-        console.log("Bear HP:", this.health);
+        if (
+            this.health <= 0
+        ) {
 
-        if (this.health <= 0) {
             this.die();
         }
-
     }
 
     die() {
 
-        console.log("Bear defeated!");
+        this.isDead = true;
 
-        this.body.setVelocity(0);
-
-        this.sprite.setFillStyle(0x444444);
+        this.body.setVelocity(
+            0,
+            0
+        );
 
         this.body.enable = false;
 
-    }
+        this.sprite.setTint(
+            0x555555
+        );
 
+        this.scene.tweens.add({
+
+            targets:
+                this.sprite,
+
+            angle: 90,
+
+            alpha: 0.4,
+
+            y:
+                this.sprite.y + 25,
+
+            duration: 350,
+
+            ease:
+                "Cubic.Out"
+
+        });
+    }
 }

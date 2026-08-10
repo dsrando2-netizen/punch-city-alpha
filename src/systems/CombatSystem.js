@@ -9,6 +9,10 @@ export default class CombatSystem {
             return false;
         }
 
+        if (target.isDead) {
+            return false;
+        }
+
         const distance = Phaser.Math.Distance.Between(
             attacker.sprite.x,
             attacker.sprite.y,
@@ -16,7 +20,8 @@ export default class CombatSystem {
             target.sprite.y
         );
 
-        if (distance > 95) {
+        // Slightly more generous range for Bruiser Bear
+        if (distance > 120) {
             return false;
         }
 
@@ -26,40 +31,70 @@ export default class CombatSystem {
 
         target.takeDamage(1);
 
+        // Impact point between PunchDog and the Bear's torso
+        const hitX =
+            Phaser.Math.Linear(
+                attacker.sprite.x,
+                target.sprite.x,
+                0.72
+            );
+
+        const hitY =
+            target.sprite.y - 30;
+
         new HitSpark(
             attacker.scene,
-            target.sprite.x,
-            target.sprite.y
+            hitX,
+            hitY
         );
 
-        attacker.scene.cameras.main.shake(
-            80,
-            0.003
-        );
-
+        // Heavy knockback
         CombatSystem.applyKnockback(
             attacker,
             target,
-            220
+            310
         );
+
+        // Camera impact
+        attacker.scene.cameras.main.shake(
+            90,
+            0.006
+        );
+
+        // Punch sound
+        if (
+            attacker.scene.sound &&
+            attacker.scene.cache.audio.exists("punch-hit")
+        ) {
+
+            attacker.scene.sound.play(
+                "punch-hit",
+                {
+                    volume: 0.65
+                }
+            );
+        }
 
         return true;
     }
 
-    static applyKnockback(attacker, target, force) {
+    static applyKnockback(
+        attacker,
+        target,
+        force
+    ) {
 
-        const angle = Phaser.Math.Angle.Between(
-            attacker.sprite.x,
-            attacker.sprite.y,
-            target.sprite.x,
-            target.sprite.y
-        );
+        const angle =
+            Phaser.Math.Angle.Between(
+                attacker.sprite.x,
+                attacker.sprite.y,
+                target.sprite.x,
+                target.sprite.y
+            );
 
         target.body.setVelocity(
             Math.cos(angle) * force,
             Math.sin(angle) * force
         );
-
     }
-
 }

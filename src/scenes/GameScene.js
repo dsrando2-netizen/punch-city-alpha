@@ -19,7 +19,6 @@ export default class GameScene extends Phaser.Scene {
 
     preload() {
 
-        // AutoSprite idle
         this.load.spritesheet(
             "punchdog_idle_autosprite",
             "/sprites/punchdog_idle_autosprite.png",
@@ -29,7 +28,6 @@ export default class GameScene extends Phaser.Scene {
             }
         );
 
-        // AutoSprite walk
         this.load.spritesheet(
             "punchdog_walk_autosprite",
             "/sprites/punchdog_walk_autosprite.png",
@@ -39,11 +37,22 @@ export default class GameScene extends Phaser.Scene {
             }
         );
 
+        this.load.image(
+            "bruiser_bear",
+            "/sprites/bruiser_bear.png"
+        );
+
+        this.load.audio(
+            "punch-hit",
+            "/audio/punch_hit.wav"
+        );
     }
 
     create() {
 
-        this.cameras.main.setBackgroundColor("#87ceeb");
+        this.cameras.main.setBackgroundColor(
+            "#87ceeb"
+        );
 
         this.physics.world.setBounds(
             0,
@@ -59,31 +68,37 @@ export default class GameScene extends Phaser.Scene {
             2000
         );
 
-        AnimationSystem.create(this);
+        AnimationSystem.create(
+            this
+        );
 
         new Buildings(this);
         new Sidewalk(this);
         new Road(this);
         new Props(this);
 
-        this.player = new PunchDog(
-            this,
-            400,
-            600
-        );
+        this.player =
+            new PunchDog(
+                this,
+                400,
+                600
+            );
 
-        this.bear = new Bear(
-            this,
-            900,
-            600
-        );
+        this.bear =
+            new Bear(
+                this,
+                900,
+                600
+            );
 
-        this.player.target = this.bear;
+        this.player.target =
+            this.bear;
 
-        this.bearHealthBar = new HealthBar(
-            this,
-            this.bear
-        );
+        this.bearHealthBar =
+            new HealthBar(
+                this,
+                this.bear
+            );
 
         this.cameras.main.startFollow(
             this.player.sprite,
@@ -91,7 +106,6 @@ export default class GameScene extends Phaser.Scene {
             0.08,
             0.08
         );
-
     }
 
     update() {
@@ -103,7 +117,5 @@ export default class GameScene extends Phaser.Scene {
         );
 
         this.bearHealthBar.update();
-
     }
-
 }
