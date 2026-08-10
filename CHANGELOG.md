@@ -4,6 +4,26 @@
 
 ---
 
+## Alpha 0.5.0 — Step 4
+
+### Added
+
+- CrowdSystem
+- Enemy formation slots around PunchDog
+- One-attacker-at-a-time combat behavior
+- Improved multi-enemy spacing
+- Better enemy repositioning
+- Cleaner Wave 3 combat flow
+
+### Verified
+
+- Wave 3 enemies spread out around PunchDog
+- Bruisers no longer stack as aggressively
+- Only one Bruiser attacks at a time
+- Multi-enemy combat remains functional
+
+---
+
 ## Alpha 0.5.0 — Step 2
 
 ### Added

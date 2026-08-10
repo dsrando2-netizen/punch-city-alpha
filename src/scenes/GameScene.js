@@ -16,9 +16,14 @@ import CrowdSystem from "../systems/CrowdSystem.js";
 export default class GameScene extends Phaser.Scene {
 
     constructor() {
+
         super("GameScene");
     }
 
+
+    // ==============================================
+    // PRELOAD
+    // ==============================================
 
     preload() {
 
@@ -52,7 +57,15 @@ export default class GameScene extends Phaser.Scene {
     }
 
 
+    // ==============================================
+    // CREATE
+    // ==============================================
+
     create() {
+
+        // ==========================================
+        // WORLD
+        // ==========================================
 
         this.cameras.main.setBackgroundColor(
             "#87ceeb"
@@ -93,20 +106,31 @@ export default class GameScene extends Phaser.Scene {
 
 
         // ==========================================
-        // WAVE STATE
+        // ENCOUNTER STATE
         // ==========================================
 
-        this.currentWave =
-            1;
+        this.currentWave = 1;
 
-        this.enemies =
-            [];
+        // Alpha 0.5.0 ends after Wave 3.
+        this.maxWave = 3;
 
-        this.waveStarted =
-            false;
+        this.enemies = [];
 
-        this.isWaveTransitioning =
-            false;
+        this.waveStarted = false;
+
+        this.isWaveTransitioning = false;
+
+        this.encounterComplete = false;
+
+
+        // ==========================================
+        // RESTART CONTROL
+        // ==========================================
+
+        this.restartKey =
+            this.input.keyboard.addKey(
+                Phaser.Input.Keyboard.KeyCodes.R
+            );
 
 
         // ==========================================
@@ -127,7 +151,7 @@ export default class GameScene extends Phaser.Scene {
 
 
         // ==========================================
-        // ENEMY COUNT
+        // ENEMY COUNTER
         // ==========================================
 
         this.enemyCountText =
@@ -136,20 +160,11 @@ export default class GameScene extends Phaser.Scene {
                 26,
                 "",
                 {
-                    fontFamily:
-                        "Arial",
-
-                    fontSize:
-                        "22px",
-
-                    color:
-                        "#ffffff",
-
-                    stroke:
-                        "#000000",
-
-                    strokeThickness:
-                        5
+                    fontFamily: "Arial",
+                    fontSize: "22px",
+                    color: "#ffffff",
+                    stroke: "#000000",
+                    strokeThickness: 5
                 }
             );
 
@@ -159,7 +174,7 @@ export default class GameScene extends Phaser.Scene {
 
 
         // ==========================================
-        // WAVE TEXT
+        // WAVE NUMBER
         // ==========================================
 
         this.waveText =
@@ -168,20 +183,11 @@ export default class GameScene extends Phaser.Scene {
                 58,
                 "",
                 {
-                    fontFamily:
-                        "Arial",
-
-                    fontSize:
-                        "20px",
-
-                    color:
-                        "#ffd54a",
-
-                    stroke:
-                        "#000000",
-
-                    strokeThickness:
-                        4
+                    fontFamily: "Arial",
+                    fontSize: "20px",
+                    color: "#ffd54a",
+                    stroke: "#000000",
+                    strokeThickness: 4
                 }
             );
 
@@ -200,23 +206,14 @@ export default class GameScene extends Phaser.Scene {
                 this.scale.height / 2,
                 "",
                 {
-                    fontFamily:
-                        "Arial Black",
+                    fontFamily: "Arial Black",
+                    fontSize: "50px",
+                    color: "#ffffff",
 
-                    fontSize:
-                        "50px",
+                    align: "center",
 
-                    color:
-                        "#ffffff",
-
-                    align:
-                        "center",
-
-                    stroke:
-                        "#000000",
-
-                    strokeThickness:
-                        9
+                    stroke: "#000000",
+                    strokeThickness: 9
                 }
             );
 
@@ -237,20 +234,12 @@ export default class GameScene extends Phaser.Scene {
                 (this.scale.height / 2) + 85,
                 "",
                 {
-                    fontFamily:
-                        "Arial Black",
+                    fontFamily: "Arial Black",
+                    fontSize: "24px",
+                    color: "#65ff7a",
 
-                    fontSize:
-                        "24px",
-
-                    color:
-                        "#65ff7a",
-
-                    stroke:
-                        "#000000",
-
-                    strokeThickness:
-                        5
+                    stroke: "#000000",
+                    strokeThickness: 5
                 }
             );
 
@@ -258,6 +247,37 @@ export default class GameScene extends Phaser.Scene {
             .setOrigin(0.5)
             .setScrollFactor(0)
             .setDepth(2001)
+            .setVisible(false);
+
+
+        // ==========================================
+        // FINAL ENCOUNTER MESSAGE
+        // ==========================================
+
+        this.victoryMessage =
+            this.add.text(
+                this.scale.width / 2,
+                this.scale.height / 2,
+                "",
+                {
+                    fontFamily: "Arial Black",
+
+                    fontSize: "42px",
+
+                    color: "#ffd54a",
+
+                    align: "center",
+
+                    stroke: "#000000",
+
+                    strokeThickness: 9
+                }
+            );
+
+        this.victoryMessage
+            .setOrigin(0.5)
+            .setScrollFactor(0)
+            .setDepth(3000)
             .setVisible(false);
 
 
@@ -273,13 +293,50 @@ export default class GameScene extends Phaser.Scene {
         );
 
 
+        // ==========================================
+        // START FIRST WAVE
+        // ==========================================
+
         this.startWave(
             this.currentWave
         );
     }
 
 
+    // ==============================================
+    // UPDATE
+    // ==============================================
+
     update() {
+
+        // ==========================================
+        // ENCOUNTER FINISHED
+        // ==========================================
+
+        if (this.encounterComplete) {
+
+            if (
+                this.player?.body?.enable
+            ) {
+
+                this.player.body.setVelocity(
+                    0,
+                    0
+                );
+            }
+
+            if (
+                Phaser.Input.Keyboard.JustDown(
+                    this.restartKey
+                )
+            ) {
+
+                this.scene.restart();
+            }
+
+            return;
+        }
+
 
         // ==========================================
         // TRANSITION LOCK
@@ -317,7 +374,7 @@ export default class GameScene extends Phaser.Scene {
 
 
         // ==========================================
-        // CROWD BEHAVIOR
+        // CROWD SYSTEM
         // ==========================================
 
         if (
@@ -330,8 +387,6 @@ export default class GameScene extends Phaser.Scene {
                 this.enemies
             );
 
-            // For now only one Bruiser is
-            // allowed to attack at once.
             CrowdSystem.chooseAttackers(
                 this.player,
                 this.enemies,
@@ -359,6 +414,10 @@ export default class GameScene extends Phaser.Scene {
         }
 
 
+        // ==========================================
+        // PLAYER TARGET
+        // ==========================================
+
         this.updatePlayerTarget();
 
 
@@ -378,7 +437,7 @@ export default class GameScene extends Phaser.Scene {
 
 
         // ==========================================
-        // WAVE COMPLETE
+        // WAVE COMPLETE CHECK
         // ==========================================
 
         if (
@@ -393,13 +452,20 @@ export default class GameScene extends Phaser.Scene {
     }
 
 
+    // ==============================================
+    // START WAVE
+    // ==============================================
+
     startWave(waveNumber) {
 
-        this.waveStarted =
-            false;
+        this.waveStarted = false;
 
-        this.isWaveTransitioning =
-            false;
+        this.isWaveTransitioning = false;
+
+
+        // ==========================================
+        // SPAWN WAVE
+        // ==========================================
 
         this.enemies =
             SpawnSystem.spawnWave(
@@ -408,7 +474,10 @@ export default class GameScene extends Phaser.Scene {
             );
 
 
-        // Player ↔ enemy collision
+        // ==========================================
+        // PLAYER ↔ ENEMY COLLISION
+        // ==========================================
+
         this.enemies.forEach(
             enemy => {
 
@@ -420,7 +489,10 @@ export default class GameScene extends Phaser.Scene {
         );
 
 
-        // Enemy ↔ enemy collision
+        // ==========================================
+        // ENEMY ↔ ENEMY COLLISION
+        // ==========================================
+
         for (
             let i = 0;
             i < this.enemies.length;
@@ -441,6 +513,10 @@ export default class GameScene extends Phaser.Scene {
         }
 
 
+        // ==========================================
+        // CROWD SETUP
+        // ==========================================
+
         CrowdSystem.assignSlots(
             this.player,
             this.enemies
@@ -452,16 +528,29 @@ export default class GameScene extends Phaser.Scene {
             1
         );
 
+
+        // ==========================================
+        // PLAYER TARGET
+        // ==========================================
+
         this.updatePlayerTarget();
 
-        this.waveStarted =
-            true;
+        this.waveStarted = true;
+
+
+        // ==========================================
+        // WAVE INTRO
+        // ==========================================
 
         this.showWaveStart(
             waveNumber
         );
     }
 
+
+    // ==============================================
+    // WAVE INTRO
+    // ==============================================
 
     showWaveStart(waveNumber) {
 
@@ -471,7 +560,8 @@ export default class GameScene extends Phaser.Scene {
             )
             .setVisible(true)
             .setAlpha(0)
-            .setScale(1.35);
+            .setScale(1.35)
+            .setAngle(0);
 
 
         this.tweens.add({
@@ -524,16 +614,18 @@ export default class GameScene extends Phaser.Scene {
     }
 
 
+    // ==============================================
+    // COMPLETE WAVE
+    // ==============================================
+
     completeWave() {
 
-        this.isWaveTransitioning =
-            true;
+        this.isWaveTransitioning = true;
 
-        this.waveStarted =
-            false;
+        this.waveStarted = false;
 
-        this.player.target =
-            null;
+        this.player.target = null;
+
 
         if (
             this.player?.body?.enable
@@ -545,11 +637,39 @@ export default class GameScene extends Phaser.Scene {
             );
         }
 
-        this.showStreetCleared();
+
+        // ==========================================
+        // FINAL WAVE?
+        // ==========================================
+
+        if (
+            this.currentWave >=
+            this.maxWave
+        ) {
+
+            this.completeEncounter();
+
+            return;
+        }
+
+
+        // ==========================================
+        // NORMAL WAVE CLEAR
+        // ==========================================
+
+        this.showStreetCleared(
+            false
+        );
     }
 
 
-    showStreetCleared() {
+    // ==============================================
+    // NORMAL STREET CLEAR
+    // ==============================================
+
+    showStreetCleared(
+        finalClear = false
+    ) {
 
         this.centerMessage
             .setText(
@@ -588,9 +708,29 @@ export default class GameScene extends Phaser.Scene {
                     0.003
                 );
 
+
+                if (finalClear) {
+
+                    this.time.delayedCall(
+                        900,
+                        () => {
+
+                            this.showVictoryScreen();
+                        }
+                    );
+
+                    return;
+                }
+
+
+                // ----------------------------------
+                // BETWEEN-WAVE HEAL
+                // ----------------------------------
+
                 this.restorePlayerHealth(
                     1
                 );
+
 
                 this.time.delayedCall(
                     1000,
@@ -603,6 +743,91 @@ export default class GameScene extends Phaser.Scene {
         });
     }
 
+
+    // ==============================================
+    // COMPLETE ENCOUNTER
+    // ==============================================
+
+    completeEncounter() {
+
+        this.encounterComplete = true;
+
+        this.isWaveTransitioning = true;
+
+        this.waveStarted = false;
+
+        this.player.target = null;
+
+
+        if (
+            this.player?.body?.enable
+        ) {
+
+            this.player.body.setVelocity(
+                0,
+                0
+            );
+        }
+
+
+        this.showStreetCleared(
+            true
+        );
+    }
+
+
+    // ==============================================
+    // FINAL VICTORY SCREEN
+    // ==============================================
+
+    showVictoryScreen() {
+
+        this.centerMessage
+            .setVisible(false);
+
+
+        this.victoryMessage
+            .setText(
+                "AREA COMPLETE!\n\n" +
+                "PUNCH CITY\n" +
+                "ALPHA 0.5.0\n\n" +
+                "PRESS R TO REPLAY"
+            )
+            .setVisible(true)
+            .setAlpha(0)
+            .setScale(0.6);
+
+
+        this.tweens.add({
+
+            targets:
+                this.victoryMessage,
+
+            alpha:
+                1,
+
+            scale:
+                1,
+
+            duration:
+                500,
+
+            ease:
+                "Back.Out"
+        });
+
+
+        // Small victory camera bump.
+        this.cameras.main.shake(
+            130,
+            0.0025
+        );
+    }
+
+
+    // ==============================================
+    // RESTORE PLAYER HEALTH
+    // ==============================================
 
     restorePlayerHealth(amount) {
 
@@ -621,25 +846,31 @@ export default class GameScene extends Phaser.Scene {
             const oldHealth =
                 this.player.health;
 
+
             this.player.health =
                 Math.min(
                     this.player.maxHealth,
+
                     this.player.health +
-                        amount
+                    amount
                 );
+
 
             const restored =
                 this.player.health -
                 oldHealth;
+
 
             this.rewardMessage
                 .setText(
                     `+${restored} HP`
                 );
 
+
             this.player.sprite.setTint(
                 0x66ff88
             );
+
 
             this.time.delayedCall(
                 250,
@@ -716,10 +947,13 @@ export default class GameScene extends Phaser.Scene {
     }
 
 
+    // ==============================================
+    // NEXT WAVE COUNTDOWN
+    // ==============================================
+
     beginNextWaveCountdown() {
 
-        let countdown =
-            3;
+        let countdown = 3;
 
 
         this.centerMessage
@@ -746,6 +980,7 @@ export default class GameScene extends Phaser.Scene {
 
                         countdown--;
 
+
                         if (
                             countdown > 0
                         ) {
@@ -759,6 +994,7 @@ export default class GameScene extends Phaser.Scene {
                                 .setScale(
                                     1.15
                                 );
+
 
                             this.tweens.add({
 
@@ -794,12 +1030,15 @@ export default class GameScene extends Phaser.Scene {
                     false
                 );
 
+
                 this.centerMessage
                     .setVisible(
                         false
                     );
 
+
                 this.currentWave++;
+
 
                 this.startWave(
                     this.currentWave
@@ -809,23 +1048,25 @@ export default class GameScene extends Phaser.Scene {
     }
 
 
+    // ==============================================
+    // FIND NEAREST LIVING ENEMY
+    // ==============================================
+
     updatePlayerTarget() {
 
         if (
             this.enemies.length === 0
         ) {
 
-            this.player.target =
-                null;
+            this.player.target = null;
 
             return;
         }
 
-        let nearestEnemy =
-            null;
 
-        let nearestDistance =
-            Infinity;
+        let nearestEnemy = null;
+
+        let nearestDistance = Infinity;
 
 
         this.enemies.forEach(
@@ -839,6 +1080,7 @@ export default class GameScene extends Phaser.Scene {
 
                     return;
                 }
+
 
                 const distance =
                     Phaser.Math.Distance.Between(
