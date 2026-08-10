@@ -4,6 +4,26 @@
 
 ---
 
+## Alpha 0.5.0 — Step 1
+
+### Added
+
+- SpawnSystem
+- Enemy registry using `this.enemies`
+- Nearest-enemy targeting
+- Enemy counter HUD
+- Wave 1 HUD
+- Foundation for multi-enemy encounters
+
+### Verified
+
+- Wave 1 spawns 1 Bruiser Bear
+- Combat still works
+- Dodge still works
+- Enemy counter reaches 0 after KO
+
+---
+
 # Alpha 0.4.2 — Combat Feel Pass #1
 
 Release Date:
