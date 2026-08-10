@@ -4,6 +4,37 @@
 
 ---
 
+# Alpha 0.4.2 — Combat Feel Pass #1
+
+Release Date:
+August 10, 2026
+
+## Added
+
+- Visible PunchDog punch lunge
+- Improved hit spark effect
+- Stronger Bruiser Bear knockback
+- Camera shake on successful hits
+- Punch impact sound
+- Improved Bruiser Bear hit reaction
+- Bruiser Bear now continuously faces PunchDog
+
+## Improved
+
+- Combat feedback
+- Hit readability
+- Enemy reaction timing
+- Overall punch impact
+
+## Current Focus
+
+- PunchDog production punch animation
+- Bruiser Bear idle animation
+- Bruiser Bear walk animation
+- Better enemy health UI
+
+---
+
 # Alpha 0.4.0
 
 Release Date:

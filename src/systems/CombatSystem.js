@@ -13,34 +13,48 @@ export default class CombatSystem {
             return false;
         }
 
-        const distance = Phaser.Math.Distance.Between(
-            attacker.sprite.x,
-            attacker.sprite.y,
-            target.sprite.x,
+        const dx = Math.abs(
+            attacker.sprite.x -
+            target.sprite.x
+        );
+
+        const dy = Math.abs(
+            attacker.sprite.y -
             target.sprite.y
         );
 
-        // Slightly more generous range for Bruiser Bear
-        if (distance > 120) {
+        // Beat-'em-up style attack range.
+        // Allows punching from natural spacing
+        // without needing to overlap the Bear.
+        const horizontalRange = 135;
+        const verticalRange = 85;
+
+        if (
+            dx > horizontalRange ||
+            dy > verticalRange
+        ) {
             return false;
         }
 
-        if (typeof target.takeDamage !== "function") {
+        if (
+            typeof target.takeDamage !==
+            "function"
+        ) {
             return false;
         }
 
         target.takeDamage(1);
 
-        // Impact point between PunchDog and the Bear's torso
+        // Place the spark around Bruiser Bear's torso.
         const hitX =
             Phaser.Math.Linear(
                 attacker.sprite.x,
                 target.sprite.x,
-                0.72
+                0.7
             );
 
         const hitY =
-            target.sprite.y - 30;
+            target.sprite.y - 25;
 
         new HitSpark(
             attacker.scene,
@@ -48,23 +62,22 @@ export default class CombatSystem {
             hitY
         );
 
-        // Heavy knockback
         CombatSystem.applyKnockback(
             attacker,
             target,
-            310
+            235
         );
 
-        // Camera impact
         attacker.scene.cameras.main.shake(
-            90,
-            0.006
+            75,
+            0.0045
         );
 
-        // Punch sound
         if (
             attacker.scene.sound &&
-            attacker.scene.cache.audio.exists("punch-hit")
+            attacker.scene.cache.audio.exists(
+                "punch-hit"
+            )
         ) {
 
             attacker.scene.sound.play(
