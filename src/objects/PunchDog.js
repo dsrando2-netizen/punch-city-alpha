@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import CombatSystem from "../systems/CombatSystem.js";
 
 export default class PunchDog {
 
@@ -6,50 +7,184 @@ export default class PunchDog {
 
         this.scene = scene;
 
-        // Create a simple physics rectangle
-        this.sprite = scene.add.rectangle(x, y, 48, 64, 0xff3333);
+        this.sprite = scene.physics.add.sprite(
+            x,
+            y,
+            "punchdog_idle_autosprite",
+            0
+        );
 
-        scene.physics.add.existing(this.sprite);
+        this.sprite.setDisplaySize(
+            170,
+            170
+        );
 
         this.body = this.sprite.body;
 
+        this.body.setSize(
+            70,
+            75
+        );
+
+        this.body.setOffset(
+            93,
+            160
+        );
+
         this.body.setCollideWorldBounds(true);
 
-        this.speed = 250;
+        this.speed = 225;
+
+        this.target = null;
+
+        this.attackCooldown = 0;
+        this.isPunching = false;
+        this.punchTimer = 0;
 
         this.keys = scene.input.keyboard.addKeys({
-            up: Phaser.Input.Keyboard.KeyCodes.W,
-            down: Phaser.Input.Keyboard.KeyCodes.S,
-            left: Phaser.Input.Keyboard.KeyCodes.A,
-            right: Phaser.Input.Keyboard.KeyCodes.D
+
+            up:
+                Phaser.Input.Keyboard.KeyCodes.W,
+
+            down:
+                Phaser.Input.Keyboard.KeyCodes.S,
+
+            left:
+                Phaser.Input.Keyboard.KeyCodes.A,
+
+            right:
+                Phaser.Input.Keyboard.KeyCodes.D,
+
+            punch:
+                Phaser.Input.Keyboard.KeyCodes.SPACE
+
         });
+
+        this.sprite.play(
+            "punchdog-idle"
+        );
 
     }
 
     update() {
 
-        this.body.setVelocity(0);
+        if (this.attackCooldown > 0) {
+            this.attackCooldown--;
+        }
+
+        let inputX = 0;
+        let inputY = 0;
 
         if (this.keys.left.isDown) {
-            this.body.setVelocityX(-this.speed);
+            inputX -= 1;
         }
 
         if (this.keys.right.isDown) {
-            this.body.setVelocityX(this.speed);
+            inputX += 1;
         }
 
         if (this.keys.up.isDown) {
-            this.body.setVelocityY(-this.speed);
+            inputY -= 1;
         }
 
         if (this.keys.down.isDown) {
-            this.body.setVelocityY(this.speed);
+            inputY += 1;
         }
 
-        this.body.velocity.normalize().scale(this.speed);
+        const isMoving =
+            inputX !== 0 ||
+            inputY !== 0;
 
-        console.log("Sprite:", this.sprite.x, this.sprite.y);
-console.log("Body:", this.body.x, this.body.y);
+        if (inputX < 0) {
+            this.sprite.setFlipX(true);
+        }
+
+        if (inputX > 0) {
+            this.sprite.setFlipX(false);
+        }
+
+        this.body.setVelocity(
+            0,
+            0
+        );
+
+        if (isMoving) {
+
+            const direction =
+                new Phaser.Math.Vector2(
+                    inputX,
+                    inputY
+                );
+
+            direction.normalize();
+
+            this.body.setVelocity(
+                direction.x * this.speed,
+                direction.y * this.speed
+            );
+
+        }
+
+        if (
+            isMoving &&
+            !this.isPunching
+        ) {
+
+            if (
+                this.sprite.anims.currentAnim?.key !==
+                "punchdog-walk"
+            ) {
+
+                this.sprite.play(
+                    "punchdog-walk",
+                    true
+                );
+
+            }
+
+        } else if (!this.isPunching) {
+
+            if (
+                this.sprite.anims.currentAnim?.key !==
+                "punchdog-idle"
+            ) {
+
+                this.sprite.play(
+                    "punchdog-idle",
+                    true
+                );
+
+            }
+
+        }
+
+        if (
+            Phaser.Input.Keyboard.JustDown(
+                this.keys.punch
+            ) &&
+            this.attackCooldown <= 0
+        ) {
+
+            this.attackCooldown = 20;
+            this.isPunching = true;
+            this.punchTimer = 8;
+
+            CombatSystem.punch(
+                this,
+                this.target
+            );
+
+        }
+
+        if (this.isPunching) {
+
+            this.punchTimer--;
+
+            if (this.punchTimer <= 0) {
+                this.isPunching = false;
+            }
+
+        }
 
     }
 

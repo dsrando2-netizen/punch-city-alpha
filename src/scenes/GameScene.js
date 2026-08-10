@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+
 import Bear from "../objects/Bear.js";
 import PunchDog from "../objects/PunchDog.js";
 
@@ -7,36 +8,83 @@ import Sidewalk from "../world/Sidewalk.js";
 import Buildings from "../world/Buildings.js";
 import Props from "../world/Props.js";
 
+import HealthBar from "../ui/HealthBar.js";
+import AnimationSystem from "../systems/AnimationSystem.js";
+
 export default class GameScene extends Phaser.Scene {
 
     constructor() {
         super("GameScene");
     }
 
+    preload() {
+
+        // AutoSprite idle
+        this.load.spritesheet(
+            "punchdog_idle_autosprite",
+            "/sprites/punchdog_idle_autosprite.png",
+            {
+                frameWidth: 256,
+                frameHeight: 256
+            }
+        );
+
+        // AutoSprite walk
+        this.load.spritesheet(
+            "punchdog_walk_autosprite",
+            "/sprites/punchdog_walk_autosprite.png",
+            {
+                frameWidth: 256,
+                frameHeight: 256
+            }
+        );
+
+    }
+
     create() {
 
-        // Background
         this.cameras.main.setBackgroundColor("#87ceeb");
 
-        // World size
-        this.physics.world.setBounds(0, 0, 3000, 2000);
-        this.cameras.main.setBounds(0, 0, 3000, 2000);
+        this.physics.world.setBounds(
+            0,
+            0,
+            3000,
+            2000
+        );
 
-        // Build the city
+        this.cameras.main.setBounds(
+            0,
+            0,
+            3000,
+            2000
+        );
+
+        AnimationSystem.create(this);
+
         new Buildings(this);
         new Sidewalk(this);
         new Road(this);
         new Props(this);
 
-        // Create PunchDog
-        this.player = new PunchDog(this, 400, 600);
-        this.bear = new Bear(
-    this,
-    900,
-    600
-);
+        this.player = new PunchDog(
+            this,
+            400,
+            600
+        );
 
-        // Camera
+        this.bear = new Bear(
+            this,
+            900,
+            600
+        );
+
+        this.player.target = this.bear;
+
+        this.bearHealthBar = new HealthBar(
+            this,
+            this.bear
+        );
+
         this.cameras.main.startFollow(
             this.player.sprite,
             true,
@@ -46,12 +94,16 @@ export default class GameScene extends Phaser.Scene {
 
     }
 
-update() {
+    update() {
 
-    this.player.update();
+        this.player.update();
 
-    this.bear.update(this.player);
+        this.bear.update(
+            this.player
+        );
 
-}
+        this.bearHealthBar.update();
+
+    }
 
 }
