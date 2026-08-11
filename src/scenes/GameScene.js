@@ -8,7 +8,7 @@ import Buildings from "../world/Buildings.js";
 import Props from "../world/Props.js";
 
 import HealthBar from "../ui/HealthBar.js";
-
+import KOSystem from "../systems/KOSystem.js";
 import AnimationSystem from "../systems/AnimationSystem.js";
 import SpawnSystem from "../systems/SpawnSystem.js";
 import CrowdSystem from "../systems/CrowdSystem.js";
@@ -116,7 +116,15 @@ this.load.image(
                 400,
                 600
             );
+// ==========================================
+// KO SYSTEM
+// ==========================================
 
+this.koSystem =
+    new KOSystem(
+        this,
+        this.player
+    );
 
         // ==========================================
         // ENCOUNTER STATE
@@ -321,6 +329,14 @@ this.load.image(
     // ==============================================
 
     update() {
+
+this.koSystem.update();
+
+if (
+    this.koSystem.isActive
+) {
+    return;
+}
 
         // ==========================================
         // ENCOUNTER FINISHED
