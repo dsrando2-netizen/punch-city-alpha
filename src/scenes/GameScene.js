@@ -49,6 +49,19 @@ export default class GameScene extends Phaser.Scene {
             "bruiser_bear",
             "/sprites/bruiser_bear.png"
         );
+// ==========================================
+// PICKUP ASSETS
+// ==========================================
+
+this.load.image(
+    "health_pickup",
+    "/sprites/pickups/health_pickup.png"
+);
+
+this.load.image(
+    "power_pickup",
+    "/sprites/pickups/power_pickup.png"
+);
 
         this.load.audio(
             "punch-hit",

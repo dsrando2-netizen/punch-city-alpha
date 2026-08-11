@@ -4,6 +4,30 @@
 
 ---
 
+## Alpha 0.5.1 — Step 1
+
+### Added
+
+- HealthPickup object
+- PickupSystem
+- Bruiser Bear health drops
+- Floating/pulsing heart pickup
+- +1 HP collection
+- Green heal feedback
+- Floating +HP text
+- Auto-expiring pickups
+- Full-health protection so pickups are not wasted
+
+### Verified
+
+- Bruiser drops health correctly
+- PunchDog can collect health
+- HP bar updates immediately
+- Pickups work across multiple waves
+- Encounter still reaches AREA COMPLETE
+
+---
+
 ## Alpha 0.5.0 — First Real Combat Encounter
 
 ### Added

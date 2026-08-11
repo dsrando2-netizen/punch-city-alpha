@@ -1,16 +1,16 @@
-export default class HealthPickup {
+export default class PowerPickup {
 
     constructor(
         scene,
         x,
         y,
         player,
-        healAmount = 1
+        duration = 8000
     ) {
 
         this.scene = scene;
         this.player = player;
-        this.healAmount = healAmount;
+        this.duration = duration;
 
         this.collected = false;
 
@@ -22,20 +22,20 @@ export default class HealthPickup {
             scene.add.ellipse(
                 x,
                 y + 17,
-                70,
-                24,
-                0xff3344,
-                0.18
+                76,
+                26,
+                0xffcc22,
+                0.22
             );
 
         this.glow.setDepth(498);
 
         scene.tweens.add({
             targets: this.glow,
-            scaleX: 1.18,
-            scaleY: 1.18,
-            alpha: 0.06,
-            duration: 500,
+            scaleX: 1.22,
+            scaleY: 1.22,
+            alpha: 0.07,
+            duration: 380,
             yoyo: true,
             repeat: -1,
             ease: "Sine.InOut"
@@ -49,7 +49,7 @@ export default class HealthPickup {
             scene.physics.add.image(
                 x,
                 y,
-                "health_pickup"
+                "power_pickup"
             );
 
         this.sprite.setDepth(500);
@@ -58,8 +58,8 @@ export default class HealthPickup {
         this.sprite.body.setImmovable(true);
 
         this.sprite.setDisplaySize(
-            64,
-            64
+            68,
+            68
         );
 
         this.targetScaleX =
@@ -86,13 +86,13 @@ export default class HealthPickup {
         });
 
         // ==========================================
-        // FLOATING
+        // FLOAT
         // ==========================================
 
         scene.tweens.add({
             targets: this.sprite,
-            y: y - 10,
-            duration: 550,
+            y: y - 12,
+            duration: 500,
             yoyo: true,
             repeat: -1,
             ease: "Sine.InOut",
@@ -101,9 +101,22 @@ export default class HealthPickup {
                     this.glow &&
                     this.glow.active
                 ) {
-                    this.glow.x = this.sprite.x;
+                    this.glow.x =
+                        this.sprite.x;
                 }
             }
+        });
+
+        // ==========================================
+        // ROTATE
+        // ==========================================
+
+        scene.tweens.add({
+            targets: this.sprite,
+            angle: 360,
+            duration: 2200,
+            repeat: -1,
+            ease: "Linear"
         });
 
         // ==========================================
@@ -112,8 +125,8 @@ export default class HealthPickup {
 
         scene.tweens.add({
             targets: this.sprite,
-            alpha: 0.78,
-            duration: 450,
+            alpha: 0.82,
+            duration: 350,
             yoyo: true,
             repeat: -1,
             ease: "Sine.InOut"
@@ -156,72 +169,19 @@ export default class HealthPickup {
             return;
         }
 
-        if (
-            this.player.health >=
-            this.player.maxHealth
-        ) {
-            return;
-        }
-
         this.collected = true;
 
-        const oldHealth =
-            this.player.health;
-
-        this.player.health =
-            Math.min(
-                this.player.maxHealth,
-                this.player.health +
-                this.healAmount
-            );
-
-        const restored =
-            this.player.health -
-            oldHealth;
-
-        console.log(
-            `Health Pickup: +${restored} HP`
-        );
-
-        this.player.sprite.setTint(
-            0x66ff88
-        );
-
-        this.scene.time.delayedCall(
-            180,
-            () => {
-
-                if (!this.player.isDead) {
-
-                    if (
-                        this.player.isPoweredUp
-                    ) {
-
-                        this.player.sprite.setTint(
-                            0xffcc33
-                        );
-
-                    } else {
-
-                        this.player.sprite.clearTint();
-                    }
-                }
-            }
-        );
-
-        // ==========================================
-        // FLOATING TEXT
-        // ==========================================
+        this.applyPowerBoost();
 
         const text =
             this.scene.add.text(
                 this.sprite.x,
-                this.sprite.y - 20,
-                `+${restored} HP`,
+                this.sprite.y - 25,
+                "POWER UP!",
                 {
                     fontFamily: "Arial Black",
-                    fontSize: "20px",
-                    color: "#65ff7a",
+                    fontSize: "22px",
+                    color: "#ffd633",
                     stroke: "#000000",
                     strokeThickness: 5
                 }
@@ -233,9 +193,9 @@ export default class HealthPickup {
 
         this.scene.tweens.add({
             targets: text,
-            y: text.y - 40,
+            y: text.y - 45,
             alpha: 0,
-            duration: 700,
+            duration: 850,
             ease: "Cubic.Out",
             onComplete: () => {
                 text.destroy();
@@ -261,8 +221,8 @@ export default class HealthPickup {
 
             this.scene.tweens.add({
                 targets: this.glow,
-                scaleX: 1.6,
-                scaleY: 1.6,
+                scaleX: 1.8,
+                scaleY: 1.8,
                 alpha: 0,
                 duration: 180,
                 ease: "Cubic.Out"
@@ -282,6 +242,95 @@ export default class HealthPickup {
                 this.destroy();
             }
         });
+    }
+
+
+    // ==============================================
+    // POWER BOOST
+    // ==============================================
+
+    applyPowerBoost() {
+
+        const player =
+            this.player;
+
+        if (
+            typeof player.damageMultiplier !==
+            "number"
+        ) {
+
+            player.damageMultiplier = 1;
+        }
+
+        // Refresh duration instead of stacking.
+        if (player.powerBoostTimer) {
+
+            player.powerBoostTimer.remove(false);
+            player.powerBoostTimer = null;
+        }
+
+        player.damageMultiplier = 2;
+        player.isPoweredUp = true;
+
+        console.log(
+            "PunchDog POWER BOOST active!"
+        );
+
+        player.sprite.setTint(
+            0xffcc33
+        );
+
+        player.powerBoostTimer =
+            this.scene.time.delayedCall(
+                this.duration,
+                () => {
+
+                    player.damageMultiplier = 1;
+                    player.isPoweredUp = false;
+                    player.powerBoostTimer = null;
+
+                    if (!player.isDead) {
+
+                        player.sprite.clearTint();
+                    }
+
+                    console.log(
+                        "PunchDog POWER BOOST ended."
+                    );
+
+                    if (player.isDead) {
+                        return;
+                    }
+
+                    const expiredText =
+                        this.scene.add.text(
+                            player.sprite.x,
+                            player.sprite.y - 70,
+                            "POWER ENDED",
+                            {
+                                fontFamily: "Arial Black",
+                                fontSize: "16px",
+                                color: "#ffffff",
+                                stroke: "#000000",
+                                strokeThickness: 4
+                            }
+                        );
+
+                    expiredText
+                        .setOrigin(0.5)
+                        .setDepth(1000);
+
+                    this.scene.tweens.add({
+                        targets: expiredText,
+                        y: expiredText.y - 25,
+                        alpha: 0,
+                        duration: 600,
+                        onComplete: () => {
+                            expiredText.destroy();
+                        }
+                    });
+                }
+            );
     }
 
 
