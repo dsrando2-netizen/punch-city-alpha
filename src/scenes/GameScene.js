@@ -8,15 +8,17 @@ import Buildings from "../world/Buildings.js";
 import Props from "../world/Props.js";
 
 import HealthBar from "../ui/HealthBar.js";
-import KOSystem from "../systems/KOSystem.js";
+
 import AnimationSystem from "../systems/AnimationSystem.js";
 import SpawnSystem from "../systems/SpawnSystem.js";
 import CrowdSystem from "../systems/CrowdSystem.js";
+import KOSystem from "../systems/KOSystem.js";
+import ScoreSystem from "../systems/ScoreSystem.js";
+import ResultsSystem from "../systems/ResultsSystem.js";
 
 export default class GameScene extends Phaser.Scene {
 
     constructor() {
-
         super("GameScene");
     }
 
@@ -49,19 +51,16 @@ export default class GameScene extends Phaser.Scene {
             "bruiser_bear",
             "/sprites/bruiser_bear.png"
         );
-// ==========================================
-// PICKUP ASSETS
-// ==========================================
 
-this.load.image(
-    "health_pickup",
-    "/sprites/pickups/health_pickup.png"
-);
+        this.load.image(
+            "health_pickup",
+            "/sprites/pickups/health_pickup.png"
+        );
 
-this.load.image(
-    "power_pickup",
-    "/sprites/pickups/power_pickup.png"
-);
+        this.load.image(
+            "power_pickup",
+            "/sprites/pickups/power_pickup.png"
+        );
 
         this.load.audio(
             "punch-hit",
@@ -80,9 +79,7 @@ this.load.image(
         // WORLD
         // ==========================================
 
-        this.cameras.main.setBackgroundColor(
-            "#87ceeb"
-        );
+        this.cameras.main.setBackgroundColor("#87ceeb");
 
         this.physics.world.setBounds(
             0,
@@ -110,84 +107,77 @@ this.load.image(
         // PLAYER
         // ==========================================
 
-        this.player =
-            new PunchDog(
-                this,
-                400,
-                600
-            );
-// ==========================================
-// KO SYSTEM
-// ==========================================
+        this.player = new PunchDog(
+            this,
+            400,
+            600
+        );
 
-this.koSystem =
-    new KOSystem(
-        this,
-        this.player
-    );
+
+        // ==========================================
+        // SYSTEMS
+        // ==========================================
+
+        this.koSystem = new KOSystem(
+            this,
+            this.player
+        );
+
+        this.scoreSystem = new ScoreSystem(
+            this
+        );
+
+        this.resultsSystem = new ResultsSystem(
+            this
+        );
+
 
         // ==========================================
         // ENCOUNTER STATE
         // ==========================================
 
         this.currentWave = 1;
-
-        // Alpha 0.5.0 ends after Wave 3.
         this.maxWave = 3;
 
         this.enemies = [];
 
         this.waveStarted = false;
-
         this.isWaveTransitioning = false;
-
         this.encounterComplete = false;
-
-
-        // ==========================================
-        // RESTART CONTROL
-        // ==========================================
-
-        this.restartKey =
-            this.input.keyboard.addKey(
-                Phaser.Input.Keyboard.KeyCodes.R
-            );
 
 
         // ==========================================
         // PLAYER HUD
         // ==========================================
 
-        this.playerHealthBar =
-            new HealthBar(
-                this,
-                this.player,
-                {
-                    x: 24,
-                    y: 42,
-                    width: 220,
-                    label: "PUNCHDOG HP"
-                }
-            );
+        this.playerHealthBar = new HealthBar(
+            this,
+            this.player,
+            {
+                x: 24,
+                y: 42,
+                width: 220,
+                label: "PUNCHDOG HP"
+            }
+        );
 
 
         // ==========================================
         // ENEMY COUNTER
         // ==========================================
 
-        this.enemyCountText =
-            this.add.text(
-                535,
-                26,
-                "",
-                {
-                    fontFamily: "Arial",
-                    fontSize: "22px",
-                    color: "#ffffff",
-                    stroke: "#000000",
-                    strokeThickness: 5
-                }
-            );
+        this.enemyCountText = this.add.text(
+            535,
+            26,
+            "",
+            {
+                fontFamily: "Arial",
+                fontSize: "22px",
+                color: "#ffffff",
+                stroke: "#000000",
+                strokeThickness: 5
+            }
+        );
 
         this.enemyCountText
             .setScrollFactor(0)
@@ -198,19 +188,18 @@ this.koSystem =
         // WAVE NUMBER
         // ==========================================
 
-        this.waveText =
-            this.add.text(
-                535,
-                58,
-                "",
-                {
-                    fontFamily: "Arial",
-                    fontSize: "20px",
-                    color: "#ffd54a",
-                    stroke: "#000000",
-                    strokeThickness: 4
-                }
-            );
+        this.waveText = this.add.text(
+            535,
+            58,
+            "",
+            {
+                fontFamily: "Arial",
+                fontSize: "20px",
+                color: "#ffd54a",
+                stroke: "#000000",
+                strokeThickness: 4
+            }
+        );
 
         this.waveText
             .setScrollFactor(0)
@@ -221,22 +210,19 @@ this.koSystem =
         // CENTER MESSAGE
         // ==========================================
 
-        this.centerMessage =
-            this.add.text(
-                this.scale.width / 2,
-                this.scale.height / 2,
-                "",
-                {
-                    fontFamily: "Arial Black",
-                    fontSize: "50px",
-                    color: "#ffffff",
-
-                    align: "center",
-
-                    stroke: "#000000",
-                    strokeThickness: 9
-                }
-            );
+        this.centerMessage = this.add.text(
+            this.scale.width / 2,
+            this.scale.height / 2,
+            "",
+            {
+                fontFamily: "Arial Black",
+                fontSize: "50px",
+                color: "#ffffff",
+                align: "center",
+                stroke: "#000000",
+                strokeThickness: 9
+            }
+        );
 
         this.centerMessage
             .setOrigin(0.5)
@@ -249,20 +235,18 @@ this.koSystem =
         // REWARD MESSAGE
         // ==========================================
 
-        this.rewardMessage =
-            this.add.text(
-                this.scale.width / 2,
-                (this.scale.height / 2) + 85,
-                "",
-                {
-                    fontFamily: "Arial Black",
-                    fontSize: "24px",
-                    color: "#65ff7a",
-
-                    stroke: "#000000",
-                    strokeThickness: 5
-                }
-            );
+        this.rewardMessage = this.add.text(
+            this.scale.width / 2,
+            (this.scale.height / 2) + 85,
+            "",
+            {
+                fontFamily: "Arial Black",
+                fontSize: "24px",
+                color: "#65ff7a",
+                stroke: "#000000",
+                strokeThickness: 5
+            }
+        );
 
         this.rewardMessage
             .setOrigin(0.5)
@@ -272,28 +256,23 @@ this.koSystem =
 
 
         // ==========================================
-        // FINAL ENCOUNTER MESSAGE
+        // LEGACY VICTORY MESSAGE
+        // Kept for compatibility, hidden by ResultsSystem.
         // ==========================================
 
-        this.victoryMessage =
-            this.add.text(
-                this.scale.width / 2,
-                this.scale.height / 2,
-                "",
-                {
-                    fontFamily: "Arial Black",
-
-                    fontSize: "42px",
-
-                    color: "#ffd54a",
-
-                    align: "center",
-
-                    stroke: "#000000",
-
-                    strokeThickness: 9
-                }
-            );
+        this.victoryMessage = this.add.text(
+            this.scale.width / 2,
+            this.scale.height / 2,
+            "",
+            {
+                fontFamily: "Arial Black",
+                fontSize: "42px",
+                color: "#ffd54a",
+                align: "center",
+                stroke: "#000000",
+                strokeThickness: 9
+            }
+        );
 
         this.victoryMessage
             .setOrigin(0.5)
@@ -315,7 +294,7 @@ this.koSystem =
 
 
         // ==========================================
-        // START FIRST WAVE
+        // START WAVE 1
         // ==========================================
 
         this.startWave(
@@ -330,13 +309,27 @@ this.koSystem =
 
     update() {
 
-this.koSystem.update();
+        // ==========================================
+        // KO SYSTEM
+        // ==========================================
 
-if (
-    this.koSystem.isActive
-) {
-    return;
-}
+        this.koSystem.update();
+
+        if (this.koSystem.isActive) {
+            return;
+        }
+
+
+        // ==========================================
+        // RESULTS SYSTEM
+        // ==========================================
+
+        this.resultsSystem.update();
+
+        if (this.resultsSystem.isShowing) {
+            return;
+        }
+
 
         // ==========================================
         // ENCOUNTER FINISHED
@@ -347,20 +340,10 @@ if (
             if (
                 this.player?.body?.enable
             ) {
-
                 this.player.body.setVelocity(
                     0,
                     0
                 );
-            }
-
-            if (
-                Phaser.Input.Keyboard.JustDown(
-                    this.restartKey
-                )
-            ) {
-
-                this.scene.restart();
             }
 
             return;
@@ -371,14 +354,11 @@ if (
         // TRANSITION LOCK
         // ==========================================
 
-        if (
-            this.isWaveTransitioning
-        ) {
+        if (this.isWaveTransitioning) {
 
             if (
                 this.player?.body?.enable
             ) {
-
                 this.player.body.setVelocity(
                     0,
                     0
@@ -395,11 +375,9 @@ if (
         // REMOVE DEAD ENEMIES
         // ==========================================
 
-        this.enemies =
-            this.enemies.filter(
-                enemy =>
-                    !enemy.isDead
-            );
+        this.enemies = this.enemies.filter(
+            enemy => !enemy.isDead
+        );
 
 
         // ==========================================
@@ -428,13 +406,10 @@ if (
         // UPDATE ENEMIES
         // ==========================================
 
-        if (
-            !this.isWaveTransitioning
-        ) {
+        if (!this.isWaveTransitioning) {
 
             this.enemies.forEach(
                 enemy => {
-
                     enemy.update(
                         this.player
                     );
@@ -444,15 +419,10 @@ if (
 
 
         // ==========================================
-        // PLAYER TARGET
+        // TARGET + HUD
         // ==========================================
 
         this.updatePlayerTarget();
-
-
-        // ==========================================
-        // HUD
-        // ==========================================
 
         this.playerHealthBar.update();
 
@@ -466,7 +436,7 @@ if (
 
 
         // ==========================================
-        // WAVE COMPLETE CHECK
+        // WAVE COMPLETE
         // ==========================================
 
         if (
@@ -475,7 +445,6 @@ if (
             !this.isWaveTransitioning &&
             !this.player.isDead
         ) {
-
             this.completeWave();
         }
     }
@@ -488,25 +457,15 @@ if (
     startWave(waveNumber) {
 
         this.waveStarted = false;
-
         this.isWaveTransitioning = false;
 
-
-        // ==========================================
-        // SPAWN WAVE
-        // ==========================================
-
-        this.enemies =
-            SpawnSystem.spawnWave(
-                this,
-                waveNumber
-            );
+        this.enemies = SpawnSystem.spawnWave(
+            this,
+            waveNumber
+        );
 
 
-        // ==========================================
-        // PLAYER ↔ ENEMY COLLISION
-        // ==========================================
-
+        // Player <-> enemy collision.
         this.enemies.forEach(
             enemy => {
 
@@ -518,10 +477,7 @@ if (
         );
 
 
-        // ==========================================
-        // ENEMY ↔ ENEMY COLLISION
-        // ==========================================
-
+        // Enemy <-> enemy collision.
         for (
             let i = 0;
             i < this.enemies.length;
@@ -542,10 +498,6 @@ if (
         }
 
 
-        // ==========================================
-        // CROWD SETUP
-        // ==========================================
-
         CrowdSystem.assignSlots(
             this.player,
             this.enemies
@@ -557,19 +509,9 @@ if (
             1
         );
 
-
-        // ==========================================
-        // PLAYER TARGET
-        // ==========================================
-
         this.updatePlayerTarget();
 
         this.waveStarted = true;
-
-
-        // ==========================================
-        // WAVE INTRO
-        // ==========================================
 
         this.showWaveStart(
             waveNumber
@@ -578,7 +520,7 @@ if (
 
 
     // ==============================================
-    // WAVE INTRO
+    // WAVE START MESSAGE
     // ==============================================
 
     showWaveStart(waveNumber) {
@@ -592,23 +534,15 @@ if (
             .setScale(1.35)
             .setAngle(0);
 
-
         this.tweens.add({
 
-            targets:
-                this.centerMessage,
+            targets: this.centerMessage,
 
-            alpha:
-                1,
+            alpha: 1,
+            scale: 1,
 
-            scale:
-                1,
-
-            duration:
-                220,
-
-            ease:
-                "Back.Out",
+            duration: 220,
+            ease: "Back.Out",
 
             onComplete: () => {
 
@@ -621,20 +555,15 @@ if (
                             targets:
                                 this.centerMessage,
 
-                            alpha:
-                                0,
+                            alpha: 0,
 
-                            duration:
-                                180,
+                            duration: 180,
 
-                            onComplete:
-                                () => {
+                            onComplete: () => {
 
-                                    this.centerMessage
-                                        .setVisible(
-                                            false
-                                        );
-                                }
+                                this.centerMessage
+                                    .setVisible(false);
+                            }
                         });
                     }
                 );
@@ -650,16 +579,13 @@ if (
     completeWave() {
 
         this.isWaveTransitioning = true;
-
         this.waveStarted = false;
 
         this.player.target = null;
 
-
         if (
             this.player?.body?.enable
         ) {
-
             this.player.body.setVelocity(
                 0,
                 0
@@ -667,24 +593,15 @@ if (
         }
 
 
-        // ==========================================
-        // FINAL WAVE?
-        // ==========================================
-
         if (
             this.currentWave >=
             this.maxWave
         ) {
 
             this.completeEncounter();
-
             return;
         }
 
-
-        // ==========================================
-        // NORMAL WAVE CLEAR
-        // ==========================================
 
         this.showStreetCleared(
             false
@@ -693,12 +610,10 @@ if (
 
 
     // ==============================================
-    // NORMAL STREET CLEAR
+    // STREET CLEARED
     // ==============================================
 
-    showStreetCleared(
-        finalClear = false
-    ) {
+    showStreetCleared(finalClear = false) {
 
         this.centerMessage
             .setText(
@@ -709,26 +624,16 @@ if (
             .setScale(0.45)
             .setAngle(-5);
 
-
         this.tweens.add({
 
-            targets:
-                this.centerMessage,
+            targets: this.centerMessage,
 
-            alpha:
-                1,
+            alpha: 1,
+            scale: 1.08,
+            angle: 0,
 
-            scale:
-                1.08,
-
-            angle:
-                0,
-
-            duration:
-                320,
-
-            ease:
-                "Back.Out",
+            duration: 320,
+            ease: "Back.Out",
 
             onComplete: () => {
 
@@ -743,7 +648,6 @@ if (
                     this.time.delayedCall(
                         900,
                         () => {
-
                             this.showVictoryScreen();
                         }
                     );
@@ -752,19 +656,13 @@ if (
                 }
 
 
-                // ----------------------------------
-                // BETWEEN-WAVE HEAL
-                // ----------------------------------
-
                 this.restorePlayerHealth(
                     1
                 );
 
-
                 this.time.delayedCall(
                     1000,
                     () => {
-
                         this.beginNextWaveCountdown();
                     }
                 );
@@ -780,24 +678,19 @@ if (
     completeEncounter() {
 
         this.encounterComplete = true;
-
         this.isWaveTransitioning = true;
-
         this.waveStarted = false;
 
         this.player.target = null;
 
-
         if (
             this.player?.body?.enable
         ) {
-
             this.player.body.setVelocity(
                 0,
                 0
             );
         }
-
 
         this.showStreetCleared(
             true
@@ -806,7 +699,7 @@ if (
 
 
     // ==============================================
-    // FINAL VICTORY SCREEN
+    // RESULTS SCREEN
     // ==============================================
 
     showVictoryScreen() {
@@ -814,43 +707,13 @@ if (
         this.centerMessage
             .setVisible(false);
 
+        if (this.victoryMessage) {
 
-        this.victoryMessage
-            .setText(
-                "AREA COMPLETE!\n\n" +
-                "PUNCH CITY\n" +
-                "ALPHA 0.5.0\n\n" +
-                "PRESS R TO REPLAY"
-            )
-            .setVisible(true)
-            .setAlpha(0)
-            .setScale(0.6);
+            this.victoryMessage
+                .setVisible(false);
+        }
 
-
-        this.tweens.add({
-
-            targets:
-                this.victoryMessage,
-
-            alpha:
-                1,
-
-            scale:
-                1,
-
-            duration:
-                500,
-
-            ease:
-                "Back.Out"
-        });
-
-
-        // Small victory camera bump.
-        this.cameras.main.shake(
-            130,
-            0.0025
-        );
+        this.resultsSystem.show();
     }
 
 
@@ -865,51 +728,49 @@ if (
             this.player.maxHealth
         ) {
 
-            this.rewardMessage
-                .setText(
-                    "HP FULL"
-                );
+            this.rewardMessage.setText(
+                "HP FULL"
+            );
 
         } else {
 
             const oldHealth =
                 this.player.health;
 
-
-            this.player.health =
-                Math.min(
-                    this.player.maxHealth,
-
-                    this.player.health +
-                    amount
-                );
-
+            this.player.health = Math.min(
+                this.player.maxHealth,
+                this.player.health + amount
+            );
 
             const restored =
-                this.player.health -
-                oldHealth;
+                this.player.health - oldHealth;
 
-
-            this.rewardMessage
-                .setText(
-                    `+${restored} HP`
-                );
-
+            this.rewardMessage.setText(
+                `+${restored} HP`
+            );
 
             this.player.sprite.setTint(
                 0x66ff88
             );
 
-
             this.time.delayedCall(
                 250,
                 () => {
 
-                    if (
-                        !this.player.isDead
-                    ) {
+                    if (!this.player.isDead) {
 
-                        this.player.sprite.clearTint();
+                        if (
+                            this.player.isPoweredUp
+                        ) {
+
+                            this.player.sprite.setTint(
+                                0xffcc33
+                            );
+
+                        } else {
+
+                            this.player.sprite.clearTint();
+                        }
                     }
                 }
             );
@@ -920,28 +781,19 @@ if (
             .setVisible(true)
             .setAlpha(0)
             .setY(
-                (this.scale.height / 2) +
-                95
+                (this.scale.height / 2) + 95
             );
-
 
         this.tweens.add({
 
             targets:
                 this.rewardMessage,
 
-            alpha:
-                1,
+            alpha: 1,
+            y: this.rewardMessage.y - 18,
 
-            y:
-                this.rewardMessage.y -
-                18,
-
-            duration:
-                220,
-
-            ease:
-                "Cubic.Out",
+            duration: 220,
+            ease: "Cubic.Out",
 
             onComplete: () => {
 
@@ -954,20 +806,15 @@ if (
                             targets:
                                 this.rewardMessage,
 
-                            alpha:
-                                0,
+                            alpha: 0,
 
-                            duration:
-                                180,
+                            duration: 180,
 
-                            onComplete:
-                                () => {
+                            onComplete: () => {
 
-                                    this.rewardMessage
-                                        .setVisible(
-                                            false
-                                        );
-                                }
+                                this.rewardMessage
+                                    .setVisible(false);
+                            }
                         });
                     }
                 );
@@ -984,7 +831,6 @@ if (
 
         let countdown = 3;
 
-
         this.centerMessage
             .setVisible(true)
             .setAlpha(1)
@@ -994,60 +840,44 @@ if (
                 `NEXT WAVE\n${countdown}`
             );
 
-
         const countdownEvent =
             this.time.addEvent({
 
-                delay:
-                    700,
+                delay: 700,
+                repeat: 2,
 
-                repeat:
-                    2,
+                callback: () => {
 
-                callback:
-                    () => {
+                    countdown--;
 
-                        countdown--;
+                    if (countdown > 0) {
 
+                        this.centerMessage.setText(
+                            `NEXT WAVE\n${countdown}`
+                        );
 
-                        if (
-                            countdown > 0
-                        ) {
+                        this.centerMessage.setScale(
+                            1.15
+                        );
 
-                            this.centerMessage
-                                .setText(
-                                    `NEXT WAVE\n${countdown}`
-                                );
+                        this.tweens.add({
 
-                            this.centerMessage
-                                .setScale(
-                                    1.15
-                                );
+                            targets:
+                                this.centerMessage,
 
+                            scale: 1,
 
-                            this.tweens.add({
+                            duration: 150,
+                            ease: "Back.Out"
+                        });
 
-                                targets:
-                                    this.centerMessage,
+                    } else {
 
-                                scale:
-                                    1,
-
-                                duration:
-                                    150,
-
-                                ease:
-                                    "Back.Out"
-                            });
-
-                        } else {
-
-                            this.centerMessage
-                                .setText(
-                                    "GET READY!"
-                                );
-                        }
+                        this.centerMessage.setText(
+                            "GET READY!"
+                        );
                     }
+                }
             });
 
 
@@ -1059,15 +889,10 @@ if (
                     false
                 );
 
-
                 this.centerMessage
-                    .setVisible(
-                        false
-                    );
-
+                    .setVisible(false);
 
                 this.currentWave++;
-
 
                 this.startWave(
                     this.currentWave
@@ -1078,7 +903,7 @@ if (
 
 
     // ==============================================
-    // FIND NEAREST LIVING ENEMY
+    // NEAREST ENEMY TARGET
     // ==============================================
 
     updatePlayerTarget() {
@@ -1088,15 +913,11 @@ if (
         ) {
 
             this.player.target = null;
-
             return;
         }
 
-
         let nearestEnemy = null;
-
         let nearestDistance = Infinity;
-
 
         this.enemies.forEach(
             enemy => {
@@ -1106,21 +927,16 @@ if (
                     !enemy.sprite ||
                     !enemy.sprite.active
                 ) {
-
                     return;
                 }
 
-
                 const distance =
                     Phaser.Math.Distance.Between(
-
                         this.player.sprite.x,
                         this.player.sprite.y,
-
                         enemy.sprite.x,
                         enemy.sprite.y
                     );
-
 
                 if (
                     distance <
@@ -1135,7 +951,6 @@ if (
                 }
             }
         );
-
 
         this.player.target =
             nearestEnemy;

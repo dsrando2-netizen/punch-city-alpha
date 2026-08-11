@@ -276,6 +276,20 @@ export default class Bear {
         if (this.isDead) return;
 
         this.isDead = true;
+        // ==========================================
+// SCORE / KO EVENT
+// ==========================================
+
+this.scene.events.emit(
+    "enemy-ko",
+    {
+        type: "bruiser",
+        points: 100,
+
+        x: this.sprite.x,
+        y: this.sprite.y
+    }
+);
         this.isAttacking = false;
         this.canAttack = false;
 
